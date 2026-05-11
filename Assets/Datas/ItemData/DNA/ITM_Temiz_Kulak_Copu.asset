@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5284c6ec0efb7834b851dfab6fce06a3, type: 3}
+  m_Name: ITM_Temiz_Kulak_Copu
+  m_EditorClassIdentifier: Detective.Interaction::ItemData
+  itemID: ITM_Temiz_Kulak_Copu
+  itemAdi: "Temiz Kulak \xC7\xF6p\xFC"
+  hotbarIkonu: {fileID: 21300000, guid: 6478316f2c3a57d458aaf58f25758672, type: 3}
+  DelilMi: 0
+  worldPrefab: {fileID: 2861447059643642846, guid: cd391d9e48e90134aac43dab7c04e56e, type: 3}
+  stacklenebilirMi: 0
+  maxStack: 1

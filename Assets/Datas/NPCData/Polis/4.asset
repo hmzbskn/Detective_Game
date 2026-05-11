@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4971f42a5effc4eb69cc048e505860, type: 3}
+  m_Name: 4
+  m_EditorClassIdentifier: NewAssembly::DialogueNode
+  npcText: "Bir ki\u015Fi \xF6ne \xE7\u0131k\u0131yor. Son tart\u0131\u015Fmay\u0131
+    o ya\u015Fam\u0131\u015F."
+  secenekler:
+  - secenekMetni: Kim?
+    nextNode: {fileID: 11400000, guid: 31d5b79c7c7545d4dbb9bcefc288f5d5, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}

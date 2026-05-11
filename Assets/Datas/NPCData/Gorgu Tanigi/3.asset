@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4971f42a5effc4eb69cc048e505860, type: 3}
+  m_Name: 3
+  m_EditorClassIdentifier: NewAssembly::DialogueNode
+  npcText: "D\xFCn gece temizlik i\xE7in buradayd\u0131m\u2026 Ge\xE7 saate kadar
+    kald\u0131m."
+  secenekler:
+  - secenekMetni: "Bir \u015Fey duydun mu?"
+    nextNode: {fileID: 11400000, guid: e1045fb793034e84fb61490088f8f3e0, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}
+  - secenekMetni: "Kimseyi g\xF6rd\xFCn m\xFC?"
+    nextNode: {fileID: 11400000, guid: 33a5530fd0c4ee4418d92ea4b53f1e42, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}
