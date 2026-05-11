@@ -1,0 +1,7 @@
+{
+  "name": "com.detective.controller",
+  "version": "1.0.0",
+  "displayName": "Detective Controller System",
+  "description": "Dedektiflik oyunu için modüler Unity starter assets controller paketi.",
+  "unity": "6000.3" 
+}

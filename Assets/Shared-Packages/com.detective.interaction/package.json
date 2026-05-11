@@ -1,0 +1,10 @@
+{
+  "name": "com.detective.interaction",
+  "version": "1.0.0",
+  "displayName": "Detective Interaction System",
+  "unity": "6000.3",
+  "description": "Dedektiflik oyunu için modüler etkileşim paketi (raycast, interactables etc)",
+  "dependencies": {
+    "com.detective.controller": "1.0.0"
+  }
+}
