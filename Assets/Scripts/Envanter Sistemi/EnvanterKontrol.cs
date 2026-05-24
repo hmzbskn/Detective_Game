@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class EnvanterKontrol : MonoBehaviour
 {
@@ -17,37 +18,38 @@ public class EnvanterKontrol : MonoBehaviour
 
     private int seciliHotbarIndex = -1;
 
-    // YENİ: Tahtada mıyız diye kontrol edeceğimiz anahtar!
     [HideInInspector] public bool tahtaModundaMi = false;
 
-    void Start()
+    private void Start()
     {
-        if (genelEnvanterPanel != null) genelEnvanterPanel.SetActive(false);
-        if (hotbarPanel != null) hotbarPanel.SetActive(true);
+        if (genelEnvanterPanel != null)
+            genelEnvanterPanel.SetActive(false);
+
+        if (hotbarPanel != null)
+            hotbarPanel.SetActive(true);
 
         HotbarSec(0);
     }
 
-    void Update()
+    private void Update()
     {
-        // 1. DURUM: EĞER TAHTA AÇIKSA
+        if (Keyboard.current == null)
+            return;
+
         if (tahtaModundaMi)
         {
-            // Eğer çanta arka planda bug'da kalıp açıldıysa zorla kapat!
             if (genelEnvanterPanel != null && genelEnvanterPanel.activeSelf)
             {
                 genelEnvanterPanel.SetActive(false);
             }
 
-            // SADECE HOTBARI AÇ/KAPAT (Basılı tutma yok, tek tıkla Toggle)
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (Keyboard.current.tabKey.wasPressedThisFrame)
             {
                 if (hotbarPanel != null)
                 {
                     bool yeniDurum = !hotbarPanel.activeSelf;
                     hotbarPanel.SetActive(yeniDurum);
 
-                    // ÇÖZÜM: Hotbar açıldığında hiyerarşide en alta (yani ekranda EN ÖNE) at!
                     if (yeniDurum)
                     {
                         hotbarPanel.transform.SetAsLastSibling();
@@ -55,28 +57,43 @@ public class EnvanterKontrol : MonoBehaviour
                 }
             }
         }
-        // 2. DURUM: TAHTA KAPALIYSA (NORMAL OYUN MODU)
         else
         {
-            if (Input.GetKeyDown(KeyCode.Tab)) EnvanterAc();
-            else if (Input.GetKeyUp(KeyCode.Tab)) EnvanterKapat();
+            if (Keyboard.current.tabKey.wasPressedThisFrame)
+            {
+                EnvanterAc();
+            }
+            else if (Keyboard.current.tabKey.wasReleasedThisFrame)
+            {
+                EnvanterKapat();
+            }
         }
 
-        // Sayı tuşları hep çalışsın
-        if (Input.GetKeyDown(KeyCode.Alpha1)) HotbarSec(0);
-        if (Input.GetKeyDown(KeyCode.Alpha2)) HotbarSec(1);
-        if (Input.GetKeyDown(KeyCode.Alpha3)) HotbarSec(2);
-        if (Input.GetKeyDown(KeyCode.Alpha4)) HotbarSec(3);
-        if (Input.GetKeyDown(KeyCode.Alpha5)) HotbarSec(4);
+        if (Keyboard.current.digit1Key.wasPressedThisFrame || Keyboard.current.numpad1Key.wasPressedThisFrame)
+            HotbarSec(0);
+
+        if (Keyboard.current.digit2Key.wasPressedThisFrame || Keyboard.current.numpad2Key.wasPressedThisFrame)
+            HotbarSec(1);
+
+        if (Keyboard.current.digit3Key.wasPressedThisFrame || Keyboard.current.numpad3Key.wasPressedThisFrame)
+            HotbarSec(2);
+
+        if (Keyboard.current.digit4Key.wasPressedThisFrame || Keyboard.current.numpad4Key.wasPressedThisFrame)
+            HotbarSec(3);
+
+        if (Keyboard.current.digit5Key.wasPressedThisFrame || Keyboard.current.numpad5Key.wasPressedThisFrame)
+            HotbarSec(4);
     }
 
     private void HotbarSec(int index)
     {
-        if (hotbarSlotlari == null || index >= hotbarSlotlari.Length) return;
+        if (hotbarSlotlari == null || index >= hotbarSlotlari.Length)
+            return;
 
         for (int i = 0; i < hotbarSlotlari.Length; i++)
         {
-            if (hotbarSlotlari[i] != null) hotbarSlotlari[i].SecimiGuncelle(false);
+            if (hotbarSlotlari[i] != null)
+                hotbarSlotlari[i].SecimiGuncelle(false);
         }
 
         if (hotbarSlotlari[index] != null)
@@ -85,11 +102,15 @@ public class EnvanterKontrol : MonoBehaviour
             seciliHotbarIndex = index;
 
             EsyaKusanma oyuncu = FindFirstObjectByType<EsyaKusanma>();
+
             if (oyuncu != null)
             {
                 EsyaVerisi slotTakiEsya = hotbarSlotlari[index].EsyaGetir();
-                if (slotTakiEsya != null) oyuncu.EsyaKusan(slotTakiEsya, hotbarSlotlari[index]);
-                else oyuncu.ElindekiniTemizle();
+
+                if (slotTakiEsya != null)
+                    oyuncu.EsyaKusan(slotTakiEsya, hotbarSlotlari[index]);
+                else
+                    oyuncu.ElindekiniTemizle();
             }
         }
     }
@@ -123,21 +144,40 @@ public class EnvanterKontrol : MonoBehaviour
                 return true;
             }
         }
+
         return false;
     }
 
     private void EnvanterAc()
     {
-        genelEnvanterPanel.SetActive(true);
-        if (hotbarRect != null) hotbarRect.anchoredPosition = new Vector2(hotbarRect.anchoredPosition.x, cantaAcikkenYPozisyonu);
+        if (genelEnvanterPanel != null)
+            genelEnvanterPanel.SetActive(true);
+
+        if (hotbarRect != null)
+        {
+            hotbarRect.anchoredPosition = new Vector2(
+                hotbarRect.anchoredPosition.x,
+                cantaAcikkenYPozisyonu
+            );
+        }
+
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
 
     private void EnvanterKapat()
     {
-        genelEnvanterPanel.SetActive(false);
-        if (hotbarRect != null) hotbarRect.anchoredPosition = new Vector2(hotbarRect.anchoredPosition.x, oyunIciYPozisyonu);
+        if (genelEnvanterPanel != null)
+            genelEnvanterPanel.SetActive(false);
+
+        if (hotbarRect != null)
+        {
+            hotbarRect.anchoredPosition = new Vector2(
+                hotbarRect.anchoredPosition.x,
+                oyunIciYPozisyonu
+            );
+        }
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }

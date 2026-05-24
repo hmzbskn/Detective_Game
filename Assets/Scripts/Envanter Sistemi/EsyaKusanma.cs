@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Linq; // Sıralama yapmak için gerekli
+using UnityEngine.InputSystem;
 
 public class EsyaKusanma : MonoBehaviour
 {
@@ -12,22 +12,25 @@ public class EsyaKusanma : MonoBehaviour
     private GameObject elimdekiEsya;
     private EnvanterSlot secilenSlot;
 
-    void Update()
+    private void Update()
     {
-        // BÜYÜK DÜZELTME: Cursor.visible Unity'de başlangıçta bug'a girebilir. 
-        // Bunun yerine farenin ekrana kilitli olup olmadığını soruyoruz!
-        if (Cursor.lockState != CursorLockMode.Locked) return;
+        if (Mouse.current == null)
+            return;
 
-        if (elimdekiEsya != null && Input.GetMouseButtonDown(0))
+        if (Cursor.lockState != CursorLockMode.Locked)
+            return;
+
+        if (elimdekiEsya != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             EsyaYerlestir();
         }
     }
-    // Tahta sistemi eldeki eşyayı alabilsin diye eklediğimiz köprü
+
     public EnvanterSlot SecilenSlotuGetir()
     {
         return secilenSlot;
     }
+
     public void EldekiNesneyiYenile()
     {
         if (secilenSlot != null)
@@ -36,7 +39,7 @@ public class EsyaKusanma : MonoBehaviour
 
             if (guncelEsya != null)
             {
-                if (elimdekiEsya == null || (elimdekiEsya != null && guncelEsya.esyaPrefab != null))
+                if (elimdekiEsya == null || guncelEsya.esyaPrefab != null)
                 {
                     EsyaKusan(guncelEsya, secilenSlot);
                 }
@@ -51,18 +54,28 @@ public class EsyaKusanma : MonoBehaviour
     public void EsyaKusan(EsyaVerisi kusanilacakEsya, EnvanterSlot kaynakSlot)
     {
         ElindekiniTemizle();
+
         secilenSlot = kaynakSlot;
 
         if (kusanilacakEsya != null && kusanilacakEsya.esyaPrefab != null)
         {
-            elimdekiEsya = Instantiate(kusanilacakEsya.esyaPrefab, tutmaNoktasi.position, tutmaNoktasi.rotation);
+            elimdekiEsya = Instantiate(
+                kusanilacakEsya.esyaPrefab,
+                tutmaNoktasi.position,
+                tutmaNoktasi.rotation
+            );
+
             elimdekiEsya.transform.SetParent(tutmaNoktasi);
 
             Rigidbody[] rbs = elimdekiEsya.GetComponentsInChildren<Rigidbody>();
-            foreach (Rigidbody rb in rbs) rb.isKinematic = true;
+
+            foreach (Rigidbody rb in rbs)
+                rb.isKinematic = true;
 
             Collider[] colliders = elimdekiEsya.GetComponentsInChildren<Collider>();
-            foreach (Collider col in colliders) col.enabled = false;
+
+            foreach (Collider col in colliders)
+                col.enabled = false;
         }
     }
 
@@ -75,26 +88,27 @@ public class EsyaKusanma : MonoBehaviour
         }
     }
 
-    // İŞTE EFSANE BÖLÜM BURASI: Kendi vücudumuzu delip geçen akıllı Raycast
     private void EsyaYerlestir()
     {
-        Ray ray = oyuncuKamerasi.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        if (oyuncuKamerasi == null)
+            return;
 
-        // Tek bir obje yerine, lazerin delip geçtiği TÜM objeleri listeye al
+        if (elimdekiEsya == null)
+            return;
+
+        Ray ray = oyuncuKamerasi.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+
         RaycastHit[] vuranObjeler = Physics.RaycastAll(ray, yerlestirmeMenzili);
 
-        // Vurulan objeleri kameraya olan uzaklıklarına göre yakından uzağa sırala
         System.Array.Sort(vuranObjeler, (a, b) => a.distance.CompareTo(b.distance));
 
         foreach (RaycastHit hit in vuranObjeler)
         {
-            // Eğer ışın kendi vücudumuza (Player tag'li veya CharacterController'a sahip) çarpıyorsa ES GEÇ!
             if (hit.collider.gameObject.CompareTag("Player") || hit.collider.GetComponent<CharacterController>() != null)
             {
                 continue;
             }
 
-            // Eğer buraya indiysek, karşımızda duran gerçek bir yüzeye (yer, masa vs.) çarptık demektir.
             float yuzeyEgimi = Vector3.Angle(Vector3.up, hit.normal);
 
             if (yuzeyEgimi <= maksimumEgim)
@@ -104,10 +118,14 @@ public class EsyaKusanma : MonoBehaviour
                 elimdekiEsya.transform.rotation = Quaternion.FromToRotation(Vector3.up, hit.normal);
 
                 Collider[] colliders = elimdekiEsya.GetComponentsInChildren<Collider>();
-                foreach (Collider col in colliders) col.enabled = true;
+
+                foreach (Collider col in colliders)
+                    col.enabled = true;
 
                 Rigidbody[] rbs = elimdekiEsya.GetComponentsInChildren<Rigidbody>();
-                foreach (Rigidbody rb in rbs) rb.isKinematic = false;
+
+                foreach (Rigidbody rb in rbs)
+                    rb.isKinematic = false;
 
                 elimdekiEsya = null;
 
@@ -117,13 +135,12 @@ public class EsyaKusanma : MonoBehaviour
                     secilenSlot = null;
                 }
 
-                // Başarıyla koyduk, işlemi bitir
                 return;
             }
             else
             {
-                Debug.LogWarning("Burası eşya koymak için çok dik!");
-                return; // Geçerli ilk yüzey çok dikse, onun arkasındaki duvarlara koymaya çalışma
+                Debug.LogWarning("Burası eşya koymak için çok dik.");
+                return;
             }
         }
     }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -14,7 +15,6 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
     public Color seciliRenk = new Color(0.6f, 0.3f, 0f);
     public Color normalRenk = Color.white;
 
-    // YENİ: Bu slotun şu an aktif/seçili olup olmadığını aklında tutacak
     public bool isSecili = false;
 
     private EsyaVerisi icindekiEsya;
@@ -25,14 +25,16 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
     private static GameObject hayaletIkonObjesi;
     private static Image hayaletIkon;
 
-    void Start()
+    private void Start()
     {
         BaslangicAyariniYap();
     }
 
     private void BaslangicAyariniYap()
     {
-        if (baslangicAyariYapildiMi) return;
+        if (baslangicAyariYapildiMi)
+            return;
+
         if (ikon != null)
         {
             varsayilanSprite = ikon.sprite;
@@ -41,12 +43,20 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
         }
     }
 
-    public bool BosMu() { return icindekiEsya == null; }
-    public EsyaVerisi EsyaGetir() { return icindekiEsya; }
+    public bool BosMu()
+    {
+        return icindekiEsya == null;
+    }
+
+    public EsyaVerisi EsyaGetir()
+    {
+        return icindekiEsya;
+    }
 
     public void SlotuDoldur(EsyaVerisi yeniEsya)
     {
         BaslangicAyariniYap();
+
         icindekiEsya = yeniEsya;
 
         if (ikon != null)
@@ -56,15 +66,20 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
                 ikon.sprite = yeniEsya.esyaIkonu;
                 ikon.color = Color.white;
             }
-            else { SlotuBosalt(); }
+            else
+            {
+                SlotuBosalt();
+            }
         }
+
         if (isimYazisi != null)
-            isimYazisi.text = (yeniEsya != null) ? "" : "";
+            isimYazisi.text = "";
     }
 
     public void SlotuBosalt()
     {
         icindekiEsya = null;
+
         if (ikon != null)
         {
             ikon.sprite = varsayilanSprite;
@@ -74,82 +89,163 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (BosMu() || eventData.button != PointerEventData.InputButton.Left || ikon == null) return;
+        if (BosMu())
+            return;
+
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (ikon == null)
+            return;
 
         Canvas anaCanvas = GetComponentInParent<Canvas>();
-        if (anaCanvas == null) return;
 
-        if (hayaletIkonObjesi != null) Destroy(hayaletIkonObjesi);
+        if (anaCanvas == null)
+            return;
+
+        if (hayaletIkonObjesi != null)
+            Destroy(hayaletIkonObjesi);
 
         hayaletIkonObjesi = new GameObject("HayaletIkon");
-        hayaletIkonObjesi.transform.SetParent(anaCanvas.transform);
+        hayaletIkonObjesi.transform.SetParent(anaCanvas.transform, false);
         hayaletIkonObjesi.transform.SetAsLastSibling();
 
         hayaletIkon = hayaletIkonObjesi.AddComponent<Image>();
         hayaletIkon.sprite = ikon.sprite;
-        hayaletIkon.color = new Color(1, 1, 1, 0.7f);
+        hayaletIkon.color = new Color(1f, 1f, 1f, 0.7f);
         hayaletIkon.raycastTarget = false;
+        hayaletIkon.preserveAspect = true;
 
         RectTransform rect = hayaletIkonObjesi.GetComponent<RectTransform>();
         rect.sizeDelta = ikon.rectTransform.sizeDelta;
+
+        rect.position = eventData.position;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (hayaletIkonObjesi != null) hayaletIkonObjesi.transform.position = Input.mousePosition;
+        if (hayaletIkonObjesi == null)
+            return;
+
+        hayaletIkonObjesi.transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (hayaletIkonObjesi != null) { Destroy(hayaletIkonObjesi); hayaletIkonObjesi = null; }
+        if (hayaletIkonObjesi != null)
+        {
+            Destroy(hayaletIkonObjesi);
+            hayaletIkonObjesi = null;
+        }
+
+        if (BosMu())
+            return;
+
+        TahtaZemini tahtaZemini = FareAltindakiTahtaZemininiBul(eventData);
+
+        if (tahtaZemini != null)
+        {
+            bool basarili = tahtaZemini.SlotuTahtayaAs(
+                this,
+                eventData.position,
+                eventData.pressEventCamera
+            );
+
+            if (basarili)
+                return;
+        }
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (hayaletIkonObjesi != null) { Destroy(hayaletIkonObjesi); hayaletIkonObjesi = null; }
-
-        EnvanterSlot gelenSlot = eventData.pointerDrag?.GetComponent<EnvanterSlot>();
-
-        if (gelenSlot != null && gelenSlot != this)
+        if (hayaletIkonObjesi != null)
         {
-            EsyaVerisi benimEskiEsyam = icindekiEsya;
-            EsyaVerisi gelenEsya = gelenSlot.EsyaGetir();
+            Destroy(hayaletIkonObjesi);
+            hayaletIkonObjesi = null;
+        }
 
-            SlotuDoldur(gelenEsya);
-            gelenSlot.SlotuDoldur(benimEskiEsyam);
+        EnvanterSlot gelenSlot = eventData.pointerDrag != null
+            ? eventData.pointerDrag.GetComponent<EnvanterSlot>()
+            : null;
 
-            EsyaKusanma kusanmaSistemi = FindObjectOfType<EsyaKusanma>();
-            if (kusanmaSistemi != null)
+        if (gelenSlot == null)
+            return;
+
+        if (gelenSlot == this)
+            return;
+
+        EsyaVerisi benimEskiEsyam = icindekiEsya;
+        EsyaVerisi gelenEsya = gelenSlot.EsyaGetir();
+
+        SlotuDoldur(gelenEsya);
+        gelenSlot.SlotuDoldur(benimEskiEsyam);
+
+        EsyaKusanma kusanmaSistemi = FindFirstObjectByType<EsyaKusanma>();
+
+        if (kusanmaSistemi != null)
+        {
+            if (this.isSecili)
             {
-                // YENİ MANTIK: Eğer üstüne eşya bıraktığımız bu hedef slot o an "seçili" olan slotsa, direkt eline ver
-                if (this.isSecili)
-                {
-                    kusanmaSistemi.EsyaKusan(this.EsyaGetir(), this);
-                }
-                // Veya eşyayı söküp aldığımız kaynak slot "seçili" olan slotsa, onun da elini güncelle
-                else if (gelenSlot.isSecili)
-                {
-                    kusanmaSistemi.EsyaKusan(gelenSlot.EsyaGetir(), gelenSlot);
-                }
-                else
-                {
-                    // İkisi de seçili değilse (örneğin çantanın içinde iki eşya yer değiştirdiyse) normal yenileme yap
-                    kusanmaSistemi.EldekiNesneyiYenile();
-                }
+                kusanmaSistemi.EsyaKusan(this.EsyaGetir(), this);
+            }
+            else if (gelenSlot.isSecili)
+            {
+                kusanmaSistemi.EsyaKusan(gelenSlot.EsyaGetir(), gelenSlot);
+            }
+            else
+            {
+                kusanmaSistemi.EldekiNesneyiYenile();
             }
         }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (BosMu() || eventData.button != PointerEventData.InputButton.Left) return;
-        EsyaKusanma oyuncu = FindObjectOfType<EsyaKusanma>();
-        if (oyuncu != null) oyuncu.EsyaKusan(icindekiEsya, this);
+        if (BosMu())
+            return;
+
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        EsyaKusanma oyuncu = FindFirstObjectByType<EsyaKusanma>();
+
+        if (oyuncu != null)
+            oyuncu.EsyaKusan(icindekiEsya, this);
     }
 
     public void SecimiGuncelle(bool seciliMi)
     {
-        isSecili = seciliMi; // YENİ: Durumu değişkene kaydet ki OnDrop kısmında kullanabilelim
-        if (cerceveImaj != null) cerceveImaj.color = seciliMi ? seciliRenk : normalRenk;
+        isSecili = seciliMi;
+
+        if (cerceveImaj != null)
+            cerceveImaj.color = seciliMi ? seciliRenk : normalRenk;
+    }
+
+    private TahtaZemini FareAltindakiTahtaZemininiBul(PointerEventData eventData)
+    {
+        if (EventSystem.current == null)
+            return null;
+
+        List<RaycastResult> sonuclar = new List<RaycastResult>();
+
+        EventSystem.current.RaycastAll(eventData, sonuclar);
+
+        foreach (RaycastResult sonuc in sonuclar)
+        {
+            if (sonuc.gameObject == null)
+                continue;
+
+            TahtaZemini tahtaZemini = sonuc.gameObject.GetComponent<TahtaZemini>();
+
+            if (tahtaZemini != null)
+                return tahtaZemini;
+
+            tahtaZemini = sonuc.gameObject.GetComponentInParent<TahtaZemini>();
+
+            if (tahtaZemini != null)
+                return tahtaZemini;
+        }
+
+        return null;
     }
 }

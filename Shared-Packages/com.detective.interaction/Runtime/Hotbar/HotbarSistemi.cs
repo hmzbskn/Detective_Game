@@ -1,0 +1,1082 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+using System.Collections.Generic;
+
+public class HotbarSistemi : MonoBehaviour
+{
+    [Header("Envanter Açıkken Kapatılacak Oyuncu Kontrolleri")]
+    [SerializeField] private PlayerInput oyuncuInput;
+    [SerializeField] private MonoBehaviour[] envanterAcikkenKapatilacakScriptler;
+
+    [Header("Envanter Açıkken Gizlenecek UI Objeleri")]
+    [SerializeField] private GameObject crosshairUI;
+
+    [Header("Referanslar")]
+    [SerializeField] private OyuncuEsyaTutucu esyaTutucu;
+    [SerializeField] private IncelemeSistemi incelemeSistemi;
+
+    [Header("Hotbar UI (HB0-HB4)")]
+    [SerializeField] private HotbarSlotUI[] hotbarSlotUIleri = new HotbarSlotUI[5];
+
+    [Header("Envanter UI (Üst 2 satır = 10 slot)")]
+    [SerializeField] private EnvanterSlotUI[] envanterSlotUIleri = new EnvanterSlotUI[10];
+
+    [Header("UI Panelleri")]
+    [SerializeField] private GameObject envanterMenusuUI;
+
+    [Header("Hotbar Taşıma Yuvaları")]
+    [SerializeField] private RectTransform hotbarKapsayici;
+    [SerializeField] private RectTransform hotbarNormalSlot;
+    [SerializeField] private RectTransform hotbarEnvanterSlot;
+
+    [Header("İmleç Ayarları")]
+    [SerializeField] private bool envanterAcikkenImlecAcilsin = true;
+
+    [Header("Mouse Scroll Hotbar Ayarları")]
+    [SerializeField] private bool mouseScrollIleHotbarSecimiAktif = true;
+    [SerializeField] private bool envanterAcikkenScrollKapatilsin = true;
+
+    [Tooltip("Scroll değerinin algılanması için gereken minimum eşik.")]
+    [SerializeField] private float mouseScrollEsigi = 0.01f;
+
+    [Tooltip("Scroll ile slot değiştirdikten sonra tekrar değiştirmek için beklenecek süre. Düşük değer = daha hızlı scroll.")]
+    [SerializeField] private float mouseScrollBeklemeSuresi = 0.15f;
+
+    [Tooltip("Scroll yönünü tersine çevirmek için aç.")]
+    [SerializeField] private bool mouseScrollYonuTers = false;
+
+    private InventoryItemStack[] hotbarSlotlari;
+    private InventoryItemStack[] envanterSlotlari;
+
+    private int aktifHotbarIndex = 0;
+    private bool envanterAcik = false;
+
+    private bool crosshairOncekiAktiflikDurumu;
+
+    private float sonMouseScrollZamani = -999f;
+
+    private int suruklenenGlobalSlotIndex = -1;
+
+    private void Awake()
+    {
+        hotbarSlotlari = YeniStackDizisiOlustur(5);
+        envanterSlotlari = YeniStackDizisiOlustur(10);
+
+        for (int i = 0; i < envanterSlotUIleri.Length; i++)
+        {
+            if (envanterSlotUIleri[i] != null)
+                envanterSlotUIleri[i].Baslat(this, i);
+        }
+
+        for (int i = 0; i < hotbarSlotUIleri.Length; i++)
+        {
+            if (hotbarSlotUIleri[i] != null)
+                hotbarSlotUIleri[i].Baslat(this, i);
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (esyaTutucu != null)
+            esyaTutucu.EsyaDunyayaBirakildi += EsyaDunyayaBirakildiginda;
+    }
+
+    private void OnDisable()
+    {
+        if (esyaTutucu != null)
+            esyaTutucu.EsyaDunyayaBirakildi -= EsyaDunyayaBirakildiginda;
+    }
+
+    private void Start()
+    {
+        envanterAcik = false;
+
+        if (envanterMenusuUI != null)
+            envanterMenusuUI.SetActive(false);
+
+        HotbariYuvayaTasi(hotbarNormalSlot);
+
+        SlotuSec(0);
+        TumUIyiGuncelle();
+    }
+
+    private void Update()
+    {
+        GirdileriOku();
+        HotbarKonumunuEnvanterDurumunaGoreSenkronla();
+    }
+
+    public List<ItemInstanceData> HotbarVeEnvanterdekiDNADelilInstancelariniGetir()
+    {
+        List<ItemInstanceData> sonuc = new List<ItemInstanceData>();
+
+        DNADelilInstancelariniSlotlardanTopla(hotbarSlotlari, sonuc);
+        DNADelilInstancelariniSlotlardanTopla(envanterSlotlari, sonuc);
+
+        return sonuc;
+    }
+
+    public bool AktifHotbarIteminiDNAInstanceIleDegistir(ItemData beklenenEskiItem, ItemData yeniItem, DNAData dnaData)
+    {
+        if (beklenenEskiItem == null || yeniItem == null || dnaData == null)
+            return false;
+
+        if (hotbarSlotlari == null)
+            return false;
+
+        if (aktifHotbarIndex < 0 || aktifHotbarIndex >= hotbarSlotlari.Length)
+            return false;
+
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack == null || aktifStack.BosMu())
+            return false;
+
+        if (!aktifStack.AyniItemMi(beklenenEskiItem))
+            return false;
+
+        ItemInstanceData yeniDNAInstance = new ItemInstanceData(yeniItem, dnaData);
+
+        bool aktifSlottaTekAdetVar = aktifStack.Adet <= 1;
+
+        if (!aktifSlottaTekAdetVar)
+        {
+            bool bosYerVar =
+                IlkBosHotbarBul() != -1 ||
+                IlkBosEnvanterBul() != -1;
+
+            if (!bosYerVar)
+            {
+                Debug.LogWarning("DNA alınamadı: DNA'lı kulak çöpünü koyacak boş hotbar/envanter slotu yok.");
+                return false;
+            }
+        }
+
+        aktifStack.BirAdetAzalt();
+
+        bool dnaInstanceEklendi = ItemInstanceEkle(yeniDNAInstance);
+
+        if (!dnaInstanceEklendi)
+        {
+            Debug.LogWarning("DNA alındı fakat DNA'lı kulak çöpü envantere eklenemedi.");
+            return false;
+        }
+
+        if (yeniItem.DelilMi && EvidenceManager.Instance != null)
+            EvidenceManager.Instance.Ekle(yeniItem);
+
+        AktifEliGuncelle();
+        TumUIyiGuncelle();
+
+        return true;
+    }
+
+    private void DNADelilInstancelariniSlotlardanTopla(InventoryItemStack[] slotlar, List<ItemInstanceData> sonuc)
+    {
+        if (slotlar == null)
+            return;
+
+        for (int i = 0; i < slotlar.Length; i++)
+        {
+            InventoryItemStack stack = slotlar[i];
+
+            if (stack == null || stack.BosMu())
+                continue;
+
+            ItemInstanceData instance = stack.TekAdetlikInstanceOlustur();
+
+            if (instance == null || instance.ItemData == null)
+                continue;
+
+            if (!instance.ItemData.DelilMi)
+                continue;
+
+            if (instance.DNAData == null)
+                continue;
+
+            sonuc.Add(instance);
+        }
+    }
+
+    public bool EsyayiHotbaraEkleVeSec(EldeTutulabilirObje dunyaObjesi)
+    {
+        if (dunyaObjesi == null)
+            return false;
+
+        ItemInstanceData instanceData = dunyaObjesi.ItemInstanceDataGetir();
+
+        if (instanceData == null || instanceData.ItemData == null)
+        {
+            Debug.LogWarning("Pickup objesinde ItemData yok.");
+            return false;
+        }
+
+        ItemData itemData = instanceData.ItemData;
+
+        if (instanceData.RuntimeVerisiVarMi)
+        {
+            bool eklendi = ItemInstanceEkle(instanceData);
+
+            if (eklendi)
+            {
+                Destroy(dunyaObjesi.gameObject);
+                TumUIyiGuncelle();
+                return true;
+            }
+
+            Debug.Log("Hotbar ve envanter dolu.");
+            return false;
+        }
+
+        if (itemData.StacklenebilirMi)
+        {
+            int stackIndex = StacklenebilirSlotBul(hotbarSlotlari, itemData);
+            if (stackIndex != -1)
+            {
+                hotbarSlotlari[stackIndex].BirAdetEkle(itemData);
+                Destroy(dunyaObjesi.gameObject);
+                TumUIyiGuncelle();
+                return true;
+            }
+
+            stackIndex = StacklenebilirSlotBul(envanterSlotlari, itemData);
+            if (stackIndex != -1)
+            {
+                envanterSlotlari[stackIndex].BirAdetEkle(itemData);
+                Destroy(dunyaObjesi.gameObject);
+                TumUIyiGuncelle();
+                return true;
+            }
+        }
+
+        if (hotbarSlotlari[aktifHotbarIndex].BosMu())
+        {
+            hotbarSlotlari[aktifHotbarIndex].Ayarla(itemData, 1);
+            Destroy(dunyaObjesi.gameObject);
+            SlotuSec(aktifHotbarIndex);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        int bosHotbarIndex = IlkBosHotbarBul();
+        if (bosHotbarIndex != -1)
+        {
+            hotbarSlotlari[bosHotbarIndex].Ayarla(itemData, 1);
+            Destroy(dunyaObjesi.gameObject);
+            SlotuSec(bosHotbarIndex);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        int bosEnvanterIndex = IlkBosEnvanterBul();
+        if (bosEnvanterIndex != -1)
+        {
+            envanterSlotlari[bosEnvanterIndex].Ayarla(itemData, 1);
+            Destroy(dunyaObjesi.gameObject);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        Debug.Log("Hotbar ve envanter dolu.");
+        return false;
+    }
+
+    public void SlotuSec(int index)
+    {
+        if (index < 0 || index >= hotbarSlotlari.Length)
+            return;
+
+        aktifHotbarIndex = index;
+
+        ItemInstanceData secilenInstance = null;
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack != null && !aktifStack.BosMu())
+            secilenInstance = aktifStack.TekAdetlikInstanceOlustur();
+
+        if (esyaTutucu != null)
+        {
+            if (secilenInstance == null)
+                esyaTutucu.EldekiniGizle();
+            else
+                esyaTutucu.SlotEsyasiniEldeGoster(secilenInstance);
+        }
+
+        TumUIyiGuncelle();
+    }
+
+    private void SonrakiHotbarSlotunaGec()
+    {
+        if (hotbarSlotlari == null || hotbarSlotlari.Length == 0)
+            return;
+
+        int yeniIndex = aktifHotbarIndex + 1;
+
+        if (yeniIndex >= hotbarSlotlari.Length)
+            yeniIndex = 0;
+
+        SlotuSec(yeniIndex);
+    }
+
+    private void OncekiHotbarSlotunaGec()
+    {
+        if (hotbarSlotlari == null || hotbarSlotlari.Length == 0)
+            return;
+
+        int yeniIndex = aktifHotbarIndex - 1;
+
+        if (yeniIndex < 0)
+            yeniIndex = hotbarSlotlari.Length - 1;
+
+        SlotuSec(yeniIndex);
+    }
+
+    public void SlotlariYerDegistir(int kaynakGlobalIndex, int hedefGlobalIndex)
+    {
+        if (kaynakGlobalIndex == hedefGlobalIndex)
+            return;
+
+        InventoryItemStack kaynakStack = GlobalStackGetir(kaynakGlobalIndex);
+        InventoryItemStack hedefStack = GlobalStackGetir(hedefGlobalIndex);
+
+        if (kaynakStack == null || hedefStack == null)
+            return;
+
+        if (kaynakStack.BosMu())
+            return;
+
+        if (StackleriBirlestir(kaynakStack, hedefStack))
+        {
+            AktifEliGuncelle();
+            TumUIyiGuncelle();
+            return;
+        }
+
+        GlobalStackAta(kaynakGlobalIndex, hedefStack);
+        GlobalStackAta(hedefGlobalIndex, kaynakStack);
+
+        AktifEliGuncelle();
+        TumUIyiGuncelle();
+    }
+
+    public void GlobalSlottakiEsyayiDunyayaAt(int globalIndex)
+    {
+        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+        if (stack == null || stack.BosMu())
+            return;
+
+        ItemInstanceData atilacakInstance = stack.TekAdetlikInstanceOlustur();
+        ItemData itemData = stack.ItemData;
+
+        bool aktifHotbarEsyasiMi = false;
+
+        if (globalIndex >= 100 && globalIndex < 105)
+        {
+            int hotbarIndex = globalIndex - 100;
+            aktifHotbarEsyasiMi = hotbarIndex == aktifHotbarIndex;
+        }
+
+        stack.BirAdetAzalt();
+
+        if (aktifHotbarEsyasiMi)
+            AktifEliGuncelle();
+
+        if (esyaTutucu != null)
+        {
+            if (atilacakInstance != null)
+                esyaTutucu.ItemInstanceDunyayaAt(atilacakInstance);
+            else
+                esyaTutucu.ItemDatayiDunyayaAt(itemData);
+        }
+
+        TumUIyiGuncelle();
+    }
+
+    private void OyuncuKontrolleriniAyarla(bool aktifMi)
+    {
+        if (oyuncuInput != null)
+            oyuncuInput.enabled = aktifMi;
+
+        if (envanterAcikkenKapatilacakScriptler == null)
+            return;
+
+        foreach (MonoBehaviour script in envanterAcikkenKapatilacakScriptler)
+        {
+            if (script != null)
+                script.enabled = aktifMi;
+        }
+    }
+
+    private void CrosshairGizle()
+    {
+        if (crosshairUI == null)
+            return;
+
+        crosshairOncekiAktiflikDurumu = crosshairUI.activeSelf;
+        crosshairUI.SetActive(false);
+    }
+
+    private void CrosshairGeriGetir()
+    {
+        if (crosshairUI == null)
+            return;
+
+        crosshairUI.SetActive(crosshairOncekiAktiflikDurumu);
+    }
+
+    public bool SlottaEsyaVarMi(int envanterIndex)
+    {
+        if (envanterIndex < 0 || envanterIndex >= envanterSlotlari.Length)
+            return false;
+
+        return !envanterSlotlari[envanterIndex].BosMu();
+    }
+
+    public Sprite SlottakiIkonuGetir(int envanterIndex)
+    {
+        if (envanterIndex < 0 || envanterIndex >= envanterSlotlari.Length)
+            return null;
+
+        if (envanterSlotlari[envanterIndex].BosMu())
+            return null;
+
+        return envanterSlotlari[envanterIndex].IkonGetir();
+    }
+
+    public int SlottakiAdediGetir(int envanterIndex)
+    {
+        if (envanterIndex < 0 || envanterIndex >= envanterSlotlari.Length)
+            return 0;
+
+        return envanterSlotlari[envanterIndex].BosMu() ? 0 : envanterSlotlari[envanterIndex].Adet;
+    }
+
+    public bool HotbarSlottaEsyaVarMi(int hotbarIndex)
+    {
+        if (hotbarIndex < 0 || hotbarIndex >= hotbarSlotlari.Length)
+            return false;
+
+        return !hotbarSlotlari[hotbarIndex].BosMu();
+    }
+
+    public Sprite HotbarSlottakiIkonuGetir(int hotbarIndex)
+    {
+        if (hotbarIndex < 0 || hotbarIndex >= hotbarSlotlari.Length)
+            return null;
+
+        if (hotbarSlotlari[hotbarIndex].BosMu())
+            return null;
+
+        return hotbarSlotlari[hotbarIndex].IkonGetir();
+    }
+
+    public int HotbarSlottakiAdediGetir(int hotbarIndex)
+    {
+        if (hotbarIndex < 0 || hotbarIndex >= hotbarSlotlari.Length)
+            return 0;
+
+        return hotbarSlotlari[hotbarIndex].BosMu() ? 0 : hotbarSlotlari[hotbarIndex].Adet;
+    }
+
+    public bool EnvanterAcikMi()
+    {
+        return envanterAcik;
+    }
+
+    public void EnvanteriAc()
+    {
+        envanterAcik = true;
+
+        CrosshairGizle();
+
+        if (envanterMenusuUI != null)
+            envanterMenusuUI.SetActive(true);
+
+        HotbariYuvayaTasi(hotbarEnvanterSlot);
+
+        OyuncuKontrolleriniAyarla(false);
+
+        if (envanterAcikkenImlecAcilsin)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+
+        TumUIyiGuncelle();
+    }
+
+    public void EnvanteriKapat()
+    {
+        envanterAcik = false;
+
+        HotbariYuvayaTasi(hotbarNormalSlot);
+
+        if (envanterMenusuUI != null)
+            envanterMenusuUI.SetActive(false);
+
+        OyuncuKontrolleriniAyarla(true);
+
+        CrosshairGeriGetir();
+
+        if (envanterAcikkenImlecAcilsin)
+        {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        TumUIyiGuncelle();
+    }
+
+    public void EnvanteriAcKapatDisaridan()
+    {
+        EnvanteriAcKapat();
+    }
+
+    public void SuruklemeBaslat(int globalIndex)
+    {
+        suruklenenGlobalSlotIndex = globalIndex;
+    }
+
+    public void SuruklemeBitir()
+    {
+        suruklenenGlobalSlotIndex = -1;
+    }
+
+    public int AktifSuruklenenSlotIndex()
+    {
+        return suruklenenGlobalSlotIndex;
+    }
+
+    public bool ItemVarMi(ItemData item)
+    {
+        if (item == null)
+            return false;
+
+        for (int i = 0; i < hotbarSlotlari.Length; i++)
+        {
+            if (hotbarSlotlari[i] != null &&
+                !hotbarSlotlari[i].BosMu() &&
+                hotbarSlotlari[i].AyniItemMi(item))
+            {
+                return true;
+            }
+        }
+
+        for (int i = 0; i < envanterSlotlari.Length; i++)
+        {
+            if (envanterSlotlari[i] != null &&
+                !envanterSlotlari[i].BosMu() &&
+                envanterSlotlari[i].AyniItemMi(item))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool ItemdenBirAdetAzalt(ItemData azaltilacakItem)
+    {
+        if (azaltilacakItem == null)
+            return false;
+
+        for (int i = 0; i < hotbarSlotlari.Length; i++)
+        {
+            InventoryItemStack stack = hotbarSlotlari[i];
+
+            if (stack == null || stack.BosMu())
+                continue;
+
+            if (!stack.AyniItemMi(azaltilacakItem))
+                continue;
+
+            stack.BirAdetAzalt();
+
+            if (i == aktifHotbarIndex)
+                AktifEliGuncelle();
+
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        for (int i = 0; i < envanterSlotlari.Length; i++)
+        {
+            InventoryItemStack stack = envanterSlotlari[i];
+
+            if (stack == null || stack.BosMu())
+                continue;
+
+            if (!stack.AyniItemMi(azaltilacakItem))
+                continue;
+
+            stack.BirAdetAzalt();
+
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool ItemEkle(ItemData itemData, int adet = 1)
+    {
+        if (itemData == null || adet <= 0)
+            return false;
+
+        int kalanAdet = adet;
+
+        if (itemData.StacklenebilirMi)
+        {
+            while (kalanAdet > 0)
+            {
+                int stackIndex = StacklenebilirSlotBul(hotbarSlotlari, itemData);
+
+                if (stackIndex != -1)
+                {
+                    hotbarSlotlari[stackIndex].BirAdetEkle(itemData);
+                    kalanAdet--;
+                    continue;
+                }
+
+                stackIndex = StacklenebilirSlotBul(envanterSlotlari, itemData);
+
+                if (stackIndex != -1)
+                {
+                    envanterSlotlari[stackIndex].BirAdetEkle(itemData);
+                    kalanAdet--;
+                    continue;
+                }
+
+                int bosHotbarIndex = IlkBosHotbarBul();
+                if (bosHotbarIndex != -1)
+                {
+                    int eklenecekMiktar = Mathf.Min(kalanAdet, itemData.MaxStack);
+                    hotbarSlotlari[bosHotbarIndex].Ayarla(itemData, eklenecekMiktar);
+                    kalanAdet -= eklenecekMiktar;
+                    continue;
+                }
+
+                int bosEnvanterIndex = IlkBosEnvanterBul();
+                if (bosEnvanterIndex != -1)
+                {
+                    int eklenecekMiktar = Mathf.Min(kalanAdet, itemData.MaxStack);
+                    envanterSlotlari[bosEnvanterIndex].Ayarla(itemData, eklenecekMiktar);
+                    kalanAdet -= eklenecekMiktar;
+                    continue;
+                }
+
+                TumUIyiGuncelle();
+                return false;
+            }
+
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        for (int i = 0; i < kalanAdet; i++)
+        {
+            int bosHotbarIndex = IlkBosHotbarBul();
+            if (bosHotbarIndex != -1)
+            {
+                hotbarSlotlari[bosHotbarIndex].Ayarla(itemData, 1);
+                continue;
+            }
+
+            int bosEnvanterIndex = IlkBosEnvanterBul();
+            if (bosEnvanterIndex != -1)
+            {
+                envanterSlotlari[bosEnvanterIndex].Ayarla(itemData, 1);
+                continue;
+            }
+
+            TumUIyiGuncelle();
+            return false;
+        }
+
+        TumUIyiGuncelle();
+        return true;
+    }
+
+    public bool ItemInstanceEkle(ItemInstanceData instanceData)
+    {
+        if (instanceData == null || instanceData.ItemData == null)
+            return false;
+
+        if (!instanceData.RuntimeVerisiVarMi)
+            return ItemEkle(instanceData.ItemData, 1);
+
+        if (hotbarSlotlari[aktifHotbarIndex].BosMu())
+        {
+            hotbarSlotlari[aktifHotbarIndex].Ayarla(instanceData);
+            SlotuSec(aktifHotbarIndex);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        int bosHotbarIndex = IlkBosHotbarBul();
+        if (bosHotbarIndex != -1)
+        {
+            hotbarSlotlari[bosHotbarIndex].Ayarla(instanceData);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        int bosEnvanterIndex = IlkBosEnvanterBul();
+        if (bosEnvanterIndex != -1)
+        {
+            envanterSlotlari[bosEnvanterIndex].Ayarla(instanceData);
+            TumUIyiGuncelle();
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool AktifHotbarItemMi(ItemData kontrolEdilecekItem)
+    {
+        if (kontrolEdilecekItem == null)
+            return false;
+
+        if (hotbarSlotlari == null)
+            return false;
+
+        if (aktifHotbarIndex < 0 || aktifHotbarIndex >= hotbarSlotlari.Length)
+            return false;
+
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack == null || aktifStack.BosMu())
+            return false;
+
+        return aktifStack.AyniItemMi(kontrolEdilecekItem);
+    }
+
+    public bool AktifHotbarIteminiDegistir(ItemData beklenenEskiItem, ItemData yeniItem)
+    {
+        if (beklenenEskiItem == null || yeniItem == null)
+            return false;
+
+        if (hotbarSlotlari == null)
+            return false;
+
+        if (aktifHotbarIndex < 0 || aktifHotbarIndex >= hotbarSlotlari.Length)
+            return false;
+
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack == null || aktifStack.BosMu())
+            return false;
+
+        if (!aktifStack.AyniItemMi(beklenenEskiItem))
+            return false;
+
+        aktifStack.Ayarla(yeniItem, 1);
+
+        if (yeniItem.DelilMi && EvidenceManager.Instance != null)
+            EvidenceManager.Instance.Ekle(yeniItem);
+
+        AktifEliGuncelle();
+        TumUIyiGuncelle();
+
+        return true;
+    }
+
+    private void GirdileriOku()
+    {
+        if (incelemeSistemi != null && incelemeSistemi.IncelemeAktifMi)
+            return;
+
+        KlavyeGirdileriniOku();
+        MouseScrollGirdisiniOku();
+    }
+
+    private void KlavyeGirdileriniOku()
+    {
+        if (Keyboard.current == null)
+            return;
+
+        if (Keyboard.current.tabKey.wasPressedThisFrame)
+            EnvanteriAcKapat();
+
+        if (Keyboard.current.digit1Key.wasPressedThisFrame) SlotuSec(0);
+        if (Keyboard.current.digit2Key.wasPressedThisFrame) SlotuSec(1);
+        if (Keyboard.current.digit3Key.wasPressedThisFrame) SlotuSec(2);
+        if (Keyboard.current.digit4Key.wasPressedThisFrame) SlotuSec(3);
+        if (Keyboard.current.digit5Key.wasPressedThisFrame) SlotuSec(4);
+    }
+
+    private void MouseScrollGirdisiniOku()
+    {
+        if (!mouseScrollIleHotbarSecimiAktif)
+            return;
+
+        if (envanterAcikkenScrollKapatilsin && envanterAcik)
+            return;
+
+        if (Mouse.current == null)
+            return;
+
+        float scrollY = Mouse.current.scroll.ReadValue().y;
+
+        if (Mathf.Abs(scrollY) <= mouseScrollEsigi)
+            return;
+
+        if (Time.unscaledTime - sonMouseScrollZamani < mouseScrollBeklemeSuresi)
+            return;
+
+        sonMouseScrollZamani = Time.unscaledTime;
+
+        bool yukariKaydirildi = scrollY > 0f;
+
+        if (mouseScrollYonuTers)
+            yukariKaydirildi = !yukariKaydirildi;
+
+        if (yukariKaydirildi)
+            OncekiHotbarSlotunaGec();
+        else
+            SonrakiHotbarSlotunaGec();
+    }
+
+    private void EnvanteriAcKapat()
+    {
+        if (envanterAcik)
+            EnvanteriKapat();
+        else
+            EnvanteriAc();
+    }
+
+    private void HotbariYuvayaTasi(RectTransform hedefYuva)
+    {
+        if (hotbarKapsayici == null)
+        {
+            Debug.LogWarning("Hotbar Kapsayici atanmadı.");
+            return;
+        }
+
+        if (hedefYuva == null)
+        {
+            Debug.LogWarning("Hotbar hedef yuvası atanmadı.");
+            return;
+        }
+
+        if (hotbarKapsayici.parent == hedefYuva)
+            return;
+
+        hotbarKapsayici.SetParent(hedefYuva, false);
+
+        hotbarKapsayici.anchorMin = Vector2.zero;
+        hotbarKapsayici.anchorMax = Vector2.one;
+        hotbarKapsayici.pivot = new Vector2(0.5f, 0.5f);
+
+        hotbarKapsayici.offsetMin = Vector2.zero;
+        hotbarKapsayici.offsetMax = Vector2.zero;
+        hotbarKapsayici.anchoredPosition = Vector2.zero;
+        hotbarKapsayici.sizeDelta = Vector2.zero;
+
+        hotbarKapsayici.localScale = Vector3.one;
+        hotbarKapsayici.localRotation = Quaternion.identity;
+
+        hotbarKapsayici.SetAsLastSibling();
+
+        Canvas.ForceUpdateCanvases();
+
+        Debug.Log("Hotbar yeni yuvaya taşındı: " + hedefYuva.name);
+    }
+
+    private void HotbarKonumunuEnvanterDurumunaGoreSenkronla()
+    {
+        if (envanterMenusuUI == null || hotbarKapsayici == null)
+            return;
+
+        bool panelAktif = envanterMenusuUI.activeInHierarchy;
+
+        if (panelAktif)
+        {
+            envanterAcik = true;
+
+            if (hotbarEnvanterSlot != null && hotbarKapsayici.parent != hotbarEnvanterSlot)
+                HotbariYuvayaTasi(hotbarEnvanterSlot);
+        }
+        else
+        {
+            envanterAcik = false;
+
+            if (hotbarNormalSlot != null && hotbarKapsayici.parent != hotbarNormalSlot)
+                HotbariYuvayaTasi(hotbarNormalSlot);
+        }
+    }
+
+    private int IlkBosHotbarBul()
+    {
+        for (int i = 0; i < hotbarSlotlari.Length; i++)
+        {
+            if (hotbarSlotlari[i].BosMu())
+                return i;
+        }
+
+        return -1;
+    }
+
+    private int IlkBosEnvanterBul()
+    {
+        for (int i = 0; i < envanterSlotlari.Length; i++)
+        {
+            if (envanterSlotlari[i].BosMu())
+                return i;
+        }
+
+        return -1;
+    }
+
+    private int StacklenebilirSlotBul(InventoryItemStack[] slotlar, ItemData itemData)
+    {
+        for (int i = 0; i < slotlar.Length; i++)
+        {
+            if (slotlar[i].EklenebilirMi(itemData))
+                return i;
+        }
+
+        return -1;
+    }
+
+    private bool StackleriBirlestir(InventoryItemStack kaynakStack, InventoryItemStack hedefStack)
+    {
+        if (kaynakStack == null || hedefStack == null)
+            return false;
+
+        if (kaynakStack.BosMu() || hedefStack.BosMu())
+            return false;
+
+        if (kaynakStack.RuntimeVerisiVarMi || hedefStack.RuntimeVerisiVarMi)
+            return false;
+
+        if (!kaynakStack.AyniItemMi(hedefStack.ItemData))
+            return false;
+
+        if (!hedefStack.ItemData.StacklenebilirMi)
+            return false;
+
+        int maxStack = hedefStack.ItemData.MaxStack;
+        int hedefAdet = hedefStack.Adet;
+        int kaynakAdet = kaynakStack.Adet;
+
+        if (hedefAdet >= maxStack)
+            return false;
+
+        int bosYer = maxStack - hedefAdet;
+        int aktarilacakMiktar = Mathf.Min(bosYer, kaynakAdet);
+
+        if (aktarilacakMiktar <= 0)
+            return false;
+
+        hedefStack.Ayarla(hedefStack.ItemData, hedefAdet + aktarilacakMiktar);
+
+        int kalanKaynak = kaynakAdet - aktarilacakMiktar;
+        if (kalanKaynak <= 0)
+            kaynakStack.Temizle();
+        else
+            kaynakStack.Ayarla(kaynakStack.ItemData, kalanKaynak);
+
+        return true;
+    }
+
+    private void EsyaDunyayaBirakildiginda(ItemData itemData)
+    {
+        if (itemData == null)
+            return;
+
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack == null || aktifStack.BosMu())
+            return;
+
+        if (!aktifStack.AyniItemMi(itemData))
+            return;
+
+        aktifStack.BirAdetAzalt();
+
+        AktifEliGuncelle();
+        TumUIyiGuncelle();
+    }
+
+    private InventoryItemStack GlobalStackGetir(int globalIndex)
+    {
+        if (globalIndex >= 0 && globalIndex < 10)
+            return envanterSlotlari[globalIndex];
+
+        if (globalIndex >= 100 && globalIndex < 105)
+            return hotbarSlotlari[globalIndex - 100];
+
+        return null;
+    }
+
+    private void GlobalStackAta(int globalIndex, InventoryItemStack stack)
+    {
+        if (globalIndex >= 0 && globalIndex < 10)
+        {
+            envanterSlotlari[globalIndex] = stack;
+            return;
+        }
+
+        if (globalIndex >= 100 && globalIndex < 105)
+        {
+            hotbarSlotlari[globalIndex - 100] = stack;
+        }
+    }
+
+    private InventoryItemStack[] YeniStackDizisiOlustur(int adet)
+    {
+        InventoryItemStack[] dizi = new InventoryItemStack[adet];
+
+        for (int i = 0; i < adet; i++)
+            dizi[i] = new InventoryItemStack();
+
+        return dizi;
+    }
+
+    private void AktifEliGuncelle()
+    {
+        if (esyaTutucu == null)
+            return;
+
+        InventoryItemStack aktifStack = hotbarSlotlari[aktifHotbarIndex];
+
+        if (aktifStack == null || aktifStack.BosMu())
+        {
+            esyaTutucu.EldekiniGizle();
+            return;
+        }
+
+        ItemInstanceData instance = aktifStack.TekAdetlikInstanceOlustur();
+
+        if (instance == null)
+            esyaTutucu.EldekiniGizle();
+        else
+            esyaTutucu.SlotEsyasiniEldeGoster(instance);
+    }
+
+    private void TumUIyiGuncelle()
+    {
+        for (int i = 0; i < hotbarSlotUIleri.Length; i++)
+        {
+            if (hotbarSlotUIleri[i] == null)
+                continue;
+
+            Sprite ikon = HotbarSlottakiIkonuGetir(i);
+            int adet = HotbarSlottakiAdediGetir(i);
+
+            hotbarSlotUIleri[i].GuncelleUI(ikon, i == aktifHotbarIndex, adet);
+        }
+
+        for (int i = 0; i < envanterSlotUIleri.Length; i++)
+        {
+            if (envanterSlotUIleri[i] == null)
+                continue;
+
+            Sprite ikon = SlottakiIkonuGetir(i);
+            int adet = SlottakiAdediGetir(i);
+
+            envanterSlotUIleri[i].GuncelleUI(ikon, adet);
+        }
+    }
+}

@@ -1,68 +1,114 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class TahtaGorunum : MonoBehaviour
 {
     [Header("Zoom Ayarları")]
-    public float zoomHizi = 0.1f;
-    public float minZoom = 1.0f;  // Senin ayarladığın gibi 1 yaptık
-    public float maxZoom = 3.0f;
+    [SerializeField] private float zoomHizi = 0.15f;
+    [SerializeField] private float minZoom = 1.0f;
+    [SerializeField] private float maxZoom = 3.0f;
+
+    [Header("Kaydırma Ayarları")]
+    [SerializeField] private bool ortaTuslaKaydir = true;
 
     private RectTransform rectTransform;
-    private Vector3 sonFarePozisyonu;
+    private Vector2 sonFarePozisyonu;
 
-    void Awake()
+    private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
     }
 
-    void Update()
+    private void Update()
     {
-        // 1. ZOOM (Fare Tekerleği İle)
-        float scroll = Input.mouseScrollDelta.y;
-        if (Mathf.Abs(scroll) > 0.01f)
+        if (Mouse.current == null)
+            return;
+
+        // InputField'e yazı yazarken zoom/pan çalışmasın.
+        if (EventSystem.current != null &&
+            EventSystem.current.currentSelectedGameObject != null &&
+            EventSystem.current.currentSelectedGameObject.GetComponentInParent<TMP_InputField>() != null)
         {
-            Vector3 eskiScale = rectTransform.localScale;
-            float hedefScale = eskiScale.x + scroll * zoomHizi;
-            float sinirliScale = Mathf.Clamp(hedefScale, minZoom, maxZoom);
-            Vector3 yeniScale = new Vector3(sinirliScale, sinirliScale, 1f);
-
-            if (eskiScale.x != yeniScale.x)
-            {
-                RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, null, out Vector2 fareYerelPozisyon);
-                rectTransform.localScale = yeniScale;
-
-                Vector3 kaymaMiktari = new Vector3(
-                    fareYerelPozisyon.x * (yeniScale.x - eskiScale.x),
-                    fareYerelPozisyon.y * (yeniScale.y - eskiScale.y),
-                    0f
-                );
-
-                rectTransform.localPosition -= kaymaMiktari;
-
-                // BÜYÜK ÇÖZÜM 1: Zoom en geri çekildiğinde tahtayı şaak diye merkeze oturt!
-                if (sinirliScale <= minZoom)
-                {
-                    rectTransform.localPosition = Vector3.zero;
-                }
-            }
+            return;
         }
 
-        // 2. KAYDIRMA (Pan) - Farenin ORTA TUŞUNA (Tekerleğe) Basılı Tutarak
-        if (Input.GetMouseButtonDown(2))
-        {
-            sonFarePozisyonu = Input.mousePosition;
-        }
-        else if (Input.GetMouseButton(2))
-        {
-            // BÜYÜK ÇÖZÜM 2: Sadece tahta zoomlanmışsa (büyütülmüşse) kaydırmaya izin ver!
-            // Böylece 1x modundayken yanlışlıkla tahtayı kenara çekip arkasını göremezsin.
-            if (rectTransform.localScale.x > minZoom)
-            {
-                Vector3 delta = Input.mousePosition - sonFarePozisyonu;
-                rectTransform.position += delta;
-            }
+        Vector2 farePozisyonu = Mouse.current.position.ReadValue();
 
-            sonFarePozisyonu = Input.mousePosition;
+        ZoomKontrol(farePozisyonu);
+        PanKontrol(farePozisyonu);
+    }
+
+    private void ZoomKontrol(Vector2 farePozisyonu)
+    {
+        float scrollHam = Mouse.current.scroll.ReadValue().y;
+
+        if (Mathf.Abs(scrollHam) < 0.01f)
+            return;
+
+        // Bazı sistemlerde scroll 120 gelir, bazılarında 1 gelir.
+        // Bu satır ikisini de aynı mantığa çeker.
+        float scroll = Mathf.Abs(scrollHam) > 10f ? scrollHam / 120f : scrollHam;
+
+        Vector3 eskiScale = rectTransform.localScale;
+
+        float hedefScale = eskiScale.x + scroll * zoomHizi;
+        float sinirliScale = Mathf.Clamp(hedefScale, minZoom, maxZoom);
+
+        Vector3 yeniScale = new Vector3(sinirliScale, sinirliScale, 1f);
+
+        if (Mathf.Approximately(eskiScale.x, yeniScale.x))
+            return;
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            rectTransform,
+            farePozisyonu,
+            null,
+            out Vector2 fareYerelPozisyon
+        );
+
+        rectTransform.localScale = yeniScale;
+
+        Vector3 kaymaMiktari = new Vector3(
+            fareYerelPozisyon.x * (yeniScale.x - eskiScale.x),
+            fareYerelPozisyon.y * (yeniScale.y - eskiScale.y),
+            0f
+        );
+
+        rectTransform.localPosition -= kaymaMiktari;
+
+        if (sinirliScale <= minZoom + 0.001f)
+        {
+            rectTransform.localPosition = Vector3.zero;
         }
+
+        Debug.Log("Tahta zoom: " + sinirliScale);
+    }
+
+    private void PanKontrol(Vector2 farePozisyonu)
+    {
+        if (!ortaTuslaKaydir)
+            return;
+
+        if (Mouse.current.middleButton.wasPressedThisFrame)
+        {
+            sonFarePozisyonu = farePozisyonu;
+            return;
+        }
+
+        if (!Mouse.current.middleButton.isPressed)
+            return;
+
+        if (rectTransform.localScale.x <= minZoom)
+        {
+            sonFarePozisyonu = farePozisyonu;
+            return;
+        }
+
+        Vector2 delta = farePozisyonu - sonFarePozisyonu;
+        rectTransform.position += new Vector3(delta.x, delta.y, 0f);
+
+        sonFarePozisyonu = farePozisyonu;
     }
 }

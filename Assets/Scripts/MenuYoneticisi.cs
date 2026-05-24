@@ -37,6 +37,7 @@ public class MenuYoneticisi : MonoBehaviour
         if (duraklatmaMenusu != null)
             duraklatmaMenusu.SetActive(false);
 
+        oyunDurduMu = false;
         Time.timeScale = 1f;
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -59,12 +60,18 @@ public class MenuYoneticisi : MonoBehaviour
 
     public void OyunuDuraklat()
     {
+        if (oyunDurduMu)
+            return;
+
         oyunDurduMu = true;
 
         GizlenecekUIObjeleriniKapat();
 
         if (duraklatmaMenusu != null)
+        {
             duraklatmaMenusu.SetActive(true);
+            duraklatmaMenusu.transform.SetAsLastSibling();
+        }
 
         Time.timeScale = 0f;
 
@@ -77,6 +84,9 @@ public class MenuYoneticisi : MonoBehaviour
 
     public void OyunaDevamEt()
     {
+        if (!oyunDurduMu)
+            return;
+
         oyunDurduMu = false;
 
         if (duraklatmaMenusu != null)
