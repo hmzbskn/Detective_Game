@@ -12,7 +12,7 @@ public class TahtaDelili : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndD
     [Header("Etiket Ayarları")]
     [SerializeField] private int maksimumKarakter = 30;
 
-    public EsyaVerisi DelilVerisi { get; private set; }
+    public ItemInstanceData DelilVerisi { get; private set; }
 
     private RectTransform rectTransform;
     private Canvas canvas;
@@ -57,9 +57,9 @@ public class TahtaDelili : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndD
         }
     }
 
-    public void DelilVerisiniAta(EsyaVerisi esyaVerisi)
+    public void DelilVerisiniAta(ItemInstanceData delilVerisi)
     {
-        DelilVerisi = esyaVerisi;
+        DelilVerisi = delilVerisi;
     }
 
     public void IcerigiAyarla(Sprite ikon, string baslangicMetni = "")

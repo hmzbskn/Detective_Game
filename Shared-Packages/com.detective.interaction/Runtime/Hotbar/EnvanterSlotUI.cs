@@ -101,18 +101,51 @@ public class EnvanterSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         if (dragIkonObjesi != null)
             Destroy(dragIkonObjesi);
 
-        if (hotbarSistemi != null)
+        if (hotbarSistemi == null)
+            return;
+
+        int kaynakIndex = hotbarSistemi.AktifSuruklenenSlotIndex();
+
+        if (kaynakIndex < 0)
         {
-            int kaynakIndex = hotbarSistemi.AktifSuruklenenSlotIndex();
-            bool slotUzerineBirakildi = BirSlotUIUzerineBirakildi(eventData.pointerEnter);
-
-            if (kaynakIndex >= 0 && !slotUzerineBirakildi)
-            {
-                hotbarSistemi.GlobalSlottakiEsyayiDunyayaAt(kaynakIndex);
-            }
-
             hotbarSistemi.SuruklemeBitir();
+            return;
         }
+
+        bool slotUzerineBirakildi = BirSlotUIUzerineBirakildi(eventData.pointerEnter);
+
+        if (!slotUzerineBirakildi)
+        {
+            IDelilBirakmaHedefi delilHedefi = DelilBirakmaYardimcisi.EkranPozisyonundakiHedefiBul(eventData);
+
+            if (delilHedefi != null)
+            {
+                ItemInstanceData delilInstance = hotbarSistemi.GlobalSlottakiInstanceOlustur(kaynakIndex);
+                Sprite ikon = hotbarSistemi.SlottakiIkonuGetir(kaynakIndex);
+
+                bool tahtayaAsildi = delilHedefi.DeliliBirak(
+                    delilInstance,
+                    ikon,
+                    eventData.position,
+                    eventData.pressEventCamera
+                );
+
+                hotbarSistemi.SuruklemeBitir();
+
+                if (tahtayaAsildi)
+                {
+                    hotbarSistemi.GlobalSlotuBosalt(kaynakIndex);
+                    return;
+                }
+            }
+        }
+
+        if (!slotUzerineBirakildi)
+        {
+            hotbarSistemi.GlobalSlottakiEsyayiDunyayaAt(kaynakIndex);
+        }
+
+        hotbarSistemi.SuruklemeBitir();
     }
 
     public void OnDrop(PointerEventData eventData)

@@ -392,6 +392,47 @@ public class HotbarSistemi : MonoBehaviour
         TumUIyiGuncelle();
     }
 
+    /// <summary>
+    /// Global slottaki eşyayı dünyaya atmadan, sadece kaynağı boşaltır. Delil tahtaya asıldığında
+    /// (IDelilBirakmaHedefi.DeliliBirak başarılı döndüğünde) hotbar/envanter slot UI'ları bunu çağırır.
+    /// </summary>
+    public void GlobalSlotuBosalt(int globalIndex)
+    {
+        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+
+        if (stack == null || stack.BosMu())
+            return;
+
+        bool aktifHotbarEsyasiMi = false;
+
+        if (globalIndex >= 100 && globalIndex < 105)
+        {
+            int hotbarIndex = globalIndex - 100;
+            aktifHotbarEsyasiMi = hotbarIndex == aktifHotbarIndex;
+        }
+
+        stack.Temizle();
+
+        if (aktifHotbarEsyasiMi)
+            AktifEliGuncelle();
+
+        TumUIyiGuncelle();
+    }
+
+    /// <summary>
+    /// Global slottaki eşyanın tam runtime instance verisini (DNA/fotoğraf verisi dahil) döndürür,
+    /// slotu değiştirmez. Tahtaya delil bırakma gibi salt-okunur amaçlar için kullanılır.
+    /// </summary>
+    public ItemInstanceData GlobalSlottakiInstanceOlustur(int globalIndex)
+    {
+        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+
+        if (stack == null || stack.BosMu())
+            return null;
+
+        return stack.TekAdetlikInstanceOlustur();
+    }
+
     private void OyuncuKontrolleriniAyarla(bool aktifMi)
     {
         if (oyuncuInput != null)

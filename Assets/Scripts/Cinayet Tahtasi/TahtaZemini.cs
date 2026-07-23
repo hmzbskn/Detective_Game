@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
-public class TahtaZemini : MonoBehaviour, IDropHandler
+public class TahtaZemini : MonoBehaviour, IDelilBirakmaHedefi
 {
     [Header("Ayarlar")]
     [SerializeField] private GameObject delilUIPrefab;
@@ -16,79 +15,28 @@ public class TahtaZemini : MonoBehaviour, IDropHandler
         tahtaRect = GetComponent<RectTransform>();
     }
 
-    public void OnDrop(PointerEventData eventData)
+    public bool DeliliBirak(ItemInstanceData delil, Sprite ikon, Vector2 ekranPozisyonu, Camera eventCamera)
     {
-        EnvanterSlot gelenSlot = eventData.pointerDrag != null
-            ? eventData.pointerDrag.GetComponentInParent<EnvanterSlot>()
-            : null;
-
-        if (gelenSlot == null)
-            return;
-
-        SlotuTahtayaAs(gelenSlot, eventData.position, eventData.pressEventCamera);
-    }
-
-    public bool SlotuTahtayaAs(EnvanterSlot gelenSlot, Vector2 ekranPozisyonu, Camera eventCamera)
-    {
-        if (gelenSlot == null)
+        if (delil == null || delil.ItemData == null)
             return false;
 
-        if (gelenSlot.BosMu())
-            return false;
-
-        EsyaVerisi gelenEsya = gelenSlot.EsyaGetir();
-
-        if (gelenEsya == null)
-            return false;
-
-        if (!gelenEsya.delilMi)
+        if (!delil.ItemData.DelilMi)
         {
-            Debug.LogWarning("Bu eşya tahtaya asılamaz. Sadece delilMi işaretli eşyalar asılabilir.");
+            Debug.LogWarning("Bu eşya tahtaya asılamaz. Sadece DelilMi işaretli eşyalar asılabilir.");
             return false;
         }
 
-        bool olustu = DelilGorseliOlustur(
-            gelenEsya.esyaIkonu,
-            ekranPozisyonu,
-            eventCamera
-        );
+        Sprite gosterilecekIkon = ikon != null ? ikon : delil.IkonGetir();
 
-        if (!olustu)
-            return false;
-
-        gelenSlot.SlotuBosalt();
-
-        EsyaKusanma oyuncu = FindFirstObjectByType<EsyaKusanma>();
-
-        if (oyuncu != null)
-            oyuncu.EldekiNesneyiYenile();
-
-        Debug.Log(gelenEsya.esyaAdi + " tahtaya başarıyla asıldı.");
-
-        return true;
-    }
-
-    public bool HotbarIkonunuTahtayaAs(Sprite ikon, Vector2 ekranPozisyonu, Camera eventCamera)
-    {
-        if (ikon == null)
-        {
-            Debug.LogWarning("Hotbar ikon verisi boş. Tahtaya delil görseli oluşturulamadı.");
-            return false;
-        }
-
-        bool olustu = DelilGorseliOlustur(
-            ikon,
-            ekranPozisyonu,
-            eventCamera
-        );
+        bool olustu = DelilGorseliOlustur(delil, gosterilecekIkon, ekranPozisyonu, eventCamera);
 
         if (olustu)
-            Debug.Log("Hotbar itemi tahtaya referans olarak asıldı.");
+            Debug.Log(delil.ItemData.ItemAdi + " tahtaya başarıyla asıldı.");
 
         return olustu;
     }
 
-    private bool DelilGorseliOlustur(Sprite delilIkonu, Vector2 ekranPozisyonu, Camera eventCamera)
+    private bool DelilGorseliOlustur(ItemInstanceData delil, Sprite delilIkonu, Vector2 ekranPozisyonu, Camera eventCamera)
     {
         if (delilUIPrefab == null)
         {
@@ -117,6 +65,7 @@ public class TahtaZemini : MonoBehaviour, IDropHandler
 
         if (tahtaDelili != null)
         {
+            tahtaDelili.DelilVerisiniAta(delil);
             tahtaDelili.IcerigiAyarla(delilIkonu, "");
         }
         else

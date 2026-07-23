@@ -138,22 +138,6 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
             hayaletIkonObjesi = null;
         }
 
-        if (BosMu())
-            return;
-
-        TahtaZemini tahtaZemini = FareAltindakiTahtaZemininiBul(eventData);
-
-        if (tahtaZemini != null)
-        {
-            bool basarili = tahtaZemini.SlotuTahtayaAs(
-                this,
-                eventData.position,
-                eventData.pressEventCamera
-            );
-
-            if (basarili)
-                return;
-        }
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -221,31 +205,4 @@ public class EnvanterSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandl
             cerceveImaj.color = seciliMi ? seciliRenk : normalRenk;
     }
 
-    private TahtaZemini FareAltindakiTahtaZemininiBul(PointerEventData eventData)
-    {
-        if (EventSystem.current == null)
-            return null;
-
-        List<RaycastResult> sonuclar = new List<RaycastResult>();
-
-        EventSystem.current.RaycastAll(eventData, sonuclar);
-
-        foreach (RaycastResult sonuc in sonuclar)
-        {
-            if (sonuc.gameObject == null)
-                continue;
-
-            TahtaZemini tahtaZemini = sonuc.gameObject.GetComponent<TahtaZemini>();
-
-            if (tahtaZemini != null)
-                return tahtaZemini;
-
-            tahtaZemini = sonuc.gameObject.GetComponentInParent<TahtaZemini>();
-
-            if (tahtaZemini != null)
-                return tahtaZemini;
-        }
-
-        return null;
-    }
 }

@@ -1,4 +1,3 @@
-using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -118,8 +117,6 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("GUNCEL HOTBARSLOTUI ONENDDRAG CALISTI");
-
         if (dragIkonObjesi != null)
         {
             Destroy(dragIkonObjesi);
@@ -131,8 +128,6 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         int kaynakIndex = hotbarSistemi.AktifSuruklenenSlotIndex();
 
-        Debug.Log("OnEndDrag kaynak index: " + kaynakIndex);
-
         if (kaynakIndex < 0)
         {
             hotbarSistemi.SuruklemeBitir();
@@ -141,22 +136,17 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         bool slotUzerineBirakildi = BirSlotUIUzerineBirakildi(eventData.pointerEnter);
 
-        Debug.Log("Pointer Enter: " + (eventData.pointerEnter != null ? eventData.pointerEnter.name : "YOK"));
-        Debug.Log("Slot üstüne bırakıldı mı: " + slotUzerineBirakildi);
-
         if (!slotUzerineBirakildi)
         {
-            MonoBehaviour tahtaZemini = EkranPozisyonundakiTahtaZeminiBul(
-                eventData.position,
-                eventData.pressEventCamera
-            );
+            IDelilBirakmaHedefi delilHedefi = DelilBirakmaYardimcisi.EkranPozisyonundakiHedefiBul(eventData);
 
-            if (tahtaZemini != null)
+            if (delilHedefi != null)
             {
+                ItemInstanceData delilInstance = hotbarSistemi.GlobalSlottakiInstanceOlustur(kaynakIndex);
                 Sprite ikon = hotbarSistemi.HotbarSlottakiIkonuGetir(hotbarIndex);
 
-                bool tahtayaAsildi = TahtaZeminineHotbarIkonuGonder(
-                    tahtaZemini,
+                bool tahtayaAsildi = delilHedefi.DeliliBirak(
+                    delilInstance,
                     ikon,
                     eventData.position,
                     eventData.pressEventCamera
@@ -166,13 +156,13 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
                 if (tahtayaAsildi)
                 {
-                    HotbarSlotunuBosaltmayaCalis(kaynakIndex);
+                    hotbarSistemi.GlobalSlotuBosalt(kaynakIndex);
                     return;
                 }
             }
             else
             {
-                Debug.LogWarning("Bırakılan ekran pozisyonunda TahtaZemini bulunamadı.");
+                Debug.LogWarning("Bırakılan ekran pozisyonunda delil bırakma hedefi bulunamadı.");
             }
         }
 
@@ -238,92 +228,4 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
                hedef.GetComponentInParent<HotbarSlotUI>() != null;
     }
 
-    private MonoBehaviour EkranPozisyonundakiTahtaZeminiBul(Vector2 ekranPozisyonu, Camera eventCamera)
-    {
-        MonoBehaviour[] tumComponentler = Object.FindObjectsByType<MonoBehaviour>(
-            FindObjectsInactive.Include,
-            FindObjectsSortMode.None
-        );
-
-        foreach (MonoBehaviour component in tumComponentler)
-        {
-            if (component == null)
-                continue;
-
-            if (component.GetType().Name != "TahtaZemini")
-                continue;
-
-            RectTransform rectTransform = component.GetComponent<RectTransform>();
-
-            if (rectTransform == null)
-                continue;
-
-            bool icindeMi = RectTransformUtility.RectangleContainsScreenPoint(
-                rectTransform,
-                ekranPozisyonu,
-                eventCamera
-            );
-
-            if (icindeMi)
-            {
-                Debug.Log("TahtaZemini ekran pozisyonundan bulundu: " + component.gameObject.name);
-                return component;
-            }
-        }
-
-        return null;
-    }
-
-    private bool TahtaZeminineHotbarIkonuGonder(
-        MonoBehaviour tahtaZemini,
-        Sprite ikon,
-        Vector2 ekranPozisyonu,
-        Camera eventCamera)
-    {
-        if (tahtaZemini == null)
-            return false;
-
-        MethodInfo method = tahtaZemini.GetType().GetMethod(
-            "HotbarIkonunuTahtayaAs",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-        );
-
-        if (method == null)
-        {
-            Debug.LogWarning(
-                "TahtaZemini bulundu ama içinde HotbarIkonunuTahtayaAs(Sprite, Vector2, Camera) metodu yok."
-            );
-
-            return false;
-        }
-
-        object sonuc = method.Invoke(
-            tahtaZemini,
-            new object[] { ikon, ekranPozisyonu, eventCamera }
-        );
-
-        if (sonuc is bool boolSonuc)
-            return boolSonuc;
-
-        return false;
-    }
-
-    private void HotbarSlotunuBosaltmayaCalis(int globalSlotIndex)
-    {
-        MethodInfo method = hotbarSistemi.GetType().GetMethod(
-            "GlobalSlotuBosalt",
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-        );
-
-        if (method != null)
-        {
-            method.Invoke(hotbarSistemi, new object[] { globalSlotIndex });
-            return;
-        }
-
-        Debug.LogWarning(
-            "Tahtaya referans oluşturuldu fakat HotbarSistemi içinde GlobalSlotuBosalt(int) metodu bulunamadı. " +
-            "Bu yüzden hotbar slotu boşaltılamadı."
-        );
-    }
 }
