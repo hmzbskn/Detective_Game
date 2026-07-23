@@ -6809,6 +6809,7 @@ Transform:
   - {fileID: 781459504}
   - {fileID: 107905043}
   - {fileID: 1123942507}
+  - {fileID: 1997676886}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1028947127
@@ -10174,6 +10175,19 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4116934474126280689, guid: cd391d9e48e90134aac43dab7c04e56e, type: 3}
   m_PrefabInstance: {fileID: 811629140}
   m_PrefabAsset: {fileID: 0}
+--- !u!134 &1683025700
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &1685497605
 GameObject:
   m_ObjectHideFlags: 0
@@ -10443,6 +10457,10 @@ PrefabInstance:
       propertyPath: GroundLayers.m_Bits
       value: 8
       objectReference: {fileID: 0}
+    - target: {fileID: 7106152548817518988, guid: 96aabdef183669f4e91d208d36f9f56c, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 1683025700}
     - target: {fileID: 7106152548817518988, guid: 96aabdef183669f4e91d208d36f9f56c, type: 3}
       propertyPath: m_SkinWidth
       value: 0.1
@@ -11945,6 +11963,56 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.867548, y: 3, z: 0.20000002}
   m_Center: {x: 1.066226, y: 1.5, z: -0.000000059604645}
+--- !u!1 &1997676885
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1997676886}
+  - component: {fileID: 1997676887}
+  m_Layer: 0
+  m_Name: OyuncuKontrolKilidi
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1997676886
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1997676885}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -95.04675, y: 0.00001, z: -78.31765}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1028412231}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1997676887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1997676885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a63af0fd57f35f342bcc42ca810d5cad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.Interaction::OyuncuKontrolKilidi
+  kontrolScriptleri:
+  - {fileID: 1703317706}
+  - {fileID: 1402527449}
+  - {fileID: 1703317699}
+  - {fileID: 1703317708}
+  - {fileID: 1703317714}
 --- !u!1 &2011353079
 GameObject:
   m_ObjectHideFlags: 0
