@@ -22,13 +22,21 @@ public class OyuncuEtkilesim : MonoBehaviour
     [SerializeField] private CrosshairUIController crosshairUI;
 
     private Camera anaKamera;
+    private BakisRaycastSurucu raycastSurucu;
+    private EtkilesimHighlightYoneticisi highlightYoneticisi;
+
     private IEtkilesebilir aktifObje;
-    private IHighlightable aktifHighlight;
     private EldeTutulabilirObje aktifTutulabilirObje;
 
     private Vector3 sonRayBaslangic;
     private Vector3 sonRayBitis;
     private bool sonRayCarptiMi;
+
+    private void Awake()
+    {
+        raycastSurucu = new BakisRaycastSurucu(mesafe, etkilesimKatmani, QueryTriggerInteraction.Ignore);
+        highlightYoneticisi = new EtkilesimHighlightYoneticisi();
+    }
 
     private void Start()
     {
@@ -54,17 +62,9 @@ public class OyuncuEtkilesim : MonoBehaviour
 
         bool eBasildi = Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame;
 
-        Ray ray = new Ray(anaKamera.transform.position, anaKamera.transform.forward);
+        bool carptiMi = raycastSurucu.Raycast(anaKamera, out RaycastHit hit);
 
-        bool carptiMi = Physics.Raycast(
-            ray,
-            out RaycastHit hit,
-            mesafe,
-            etkilesimKatmani,
-            QueryTriggerInteraction.Ignore
-        );
-
-        RaycastDebugGuncelle(ray, carptiMi, hit);
+        RaycastDebugGuncelle(carptiMi, hit);
 
         if (carptiMi)
         {
@@ -82,7 +82,7 @@ public class OyuncuEtkilesim : MonoBehaviour
 
                 if (eldeEsyaVar && pickupObjesiMi)
                 {
-                    HighlightGuncelle(null);
+                    highlightYoneticisi.Temizle();
 
                     if (panel != null)
                         panel.Kapat();
@@ -90,13 +90,10 @@ public class OyuncuEtkilesim : MonoBehaviour
                     if (crosshairUI != null)
                         crosshairUI.NormalModaDon();
 
-                    if (eBasildi)
-                        return;
-
                     return;
                 }
 
-                HighlightGuncelle(yeniHighlight);
+                highlightYoneticisi.Guncelle(yeniHighlight);
                 UIGuncelle();
 
                 if (eBasildi)
@@ -109,15 +106,15 @@ public class OyuncuEtkilesim : MonoBehaviour
         Temizle();
     }
 
-    private void RaycastDebugGuncelle(Ray ray, bool carptiMi, RaycastHit hit)
+    private void RaycastDebugGuncelle(bool carptiMi, RaycastHit hit)
     {
-        sonRayBaslangic = ray.origin;
+        sonRayBaslangic = anaKamera.transform.position;
         sonRayCarptiMi = carptiMi;
 
         if (carptiMi)
             sonRayBitis = hit.point;
         else
-            sonRayBitis = ray.origin + ray.direction * mesafe;
+            sonRayBitis = sonRayBaslangic + anaKamera.transform.forward * raycastSurucu.Mesafe;
 
         if (!raycastGoster)
             return;
@@ -161,20 +158,6 @@ public class OyuncuEtkilesim : MonoBehaviour
         aktifObje?.Etkilesim();
     }
 
-    private void HighlightGuncelle(IHighlightable yeniHighlight)
-    {
-        if (yeniHighlight == aktifHighlight)
-            return;
-
-        if (aktifHighlight != null)
-            aktifHighlight.HighlightKapat();
-
-        aktifHighlight = yeniHighlight;
-
-        if (aktifHighlight != null)
-            aktifHighlight.HighlightAc();
-    }
-
     private void Temizle()
     {
         aktifObje = null;
@@ -186,11 +169,7 @@ public class OyuncuEtkilesim : MonoBehaviour
         if (crosshairUI != null)
             crosshairUI.NormalModaDon();
 
-        if (aktifHighlight != null)
-        {
-            aktifHighlight.HighlightKapat();
-            aktifHighlight = null;
-        }
+        highlightYoneticisi?.Temizle();
     }
 
     private void OnDrawGizmos()

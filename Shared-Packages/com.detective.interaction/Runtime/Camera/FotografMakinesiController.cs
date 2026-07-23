@@ -183,58 +183,51 @@ public class FotografMakinesiController : MonoBehaviour
             return;
         }
 
-        if (!hotbarSistemi.ItemVarMi(bosFotografKagidiItem))
-        {
-            if (debugMesajlari)
-                Debug.Log("Fotoğraf çekilemedi. Envanterde boş fotoğraf kağıdı yok.");
-
-            if (kagitYoksaModdanCik)
-                FotografModunuKapat();
-
-            return;
-        }
-
-        FotografKaydi kayit = fotografCekimSistemi.FotografCek();
-
-        if (kayit == null)
-        {
-            Debug.LogWarning("Fotoğraf çekilemedi. Fotoğraf kaydı oluşturulamadı.");
-            return;
-        }
-
-        bool kagitTuketildi = hotbarSistemi.ItemdenBirAdetAzalt(bosFotografKagidiItem);
-
-        if (!kagitTuketildi)
-        {
-            Debug.LogWarning("Fotoğraf çekildi ama fotoğraf kağıdı tüketilemedi. Basılı fotoğraf oluşturulmadı.");
-            return;
-        }
-
-        ItemInstanceData basiliFotografInstance = new ItemInstanceData(
-            basiliFotografItem,
-            kayit
+        FotografCekimTransaksiyonu transaksiyon = new FotografCekimTransaksiyonu(
+            hotbarSistemi,
+            fotografCekimSistemi,
+            bosFotografKagidiItem,
+            basiliFotografItem
         );
 
-        bool fotografEklendi = hotbarSistemi.ItemInstanceEkle(basiliFotografInstance);
+        FotografCekimTransaksiyonu.Sonuc sonuc = transaksiyon.Uygula();
 
-        if (!fotografEklendi)
+        switch (sonuc)
         {
-            Debug.LogWarning("Basılı fotoğraf envantere eklenemedi. Envanter dolu olabilir. Kağıt geri verilmeye çalışılıyor.");
+            case FotografCekimTransaksiyonu.Sonuc.KagitYok:
+                if (debugMesajlari)
+                    Debug.Log("Fotoğraf çekilemedi. Envanterde boş fotoğraf kağıdı yok.");
 
-            bool kagitGeriVerildi = hotbarSistemi.ItemEkle(bosFotografKagidiItem, 1);
+                if (kagitYoksaModdanCik)
+                    FotografModunuKapat();
 
-            if (!kagitGeriVerildi)
-                Debug.LogWarning("Fotoğraf kağıdı geri verilemedi. Envanter sistemi kontrol edilmeli.");
+                return;
 
-            return;
+            case FotografCekimTransaksiyonu.Sonuc.CekimBasarisiz:
+                Debug.LogWarning("Fotoğraf çekilemedi. Fotoğraf kaydı oluşturulamadı.");
+                return;
+
+            case FotografCekimTransaksiyonu.Sonuc.KagitTuketilemedi:
+                Debug.LogWarning("Fotoğraf çekildi ama fotoğraf kağıdı tüketilemedi. Basılı fotoğraf oluşturulmadı.");
+                return;
+
+            case FotografCekimTransaksiyonu.Sonuc.EnvantereEklenemedi:
+                Debug.LogWarning("Basılı fotoğraf envantere eklenemedi. Envanter dolu olabilir. Kağıt geri verilmeye çalışılıyor.");
+
+                if (transaksiyon.KagitRollbackBasarisizMi)
+                    Debug.LogWarning("Fotoğraf kağıdı geri verilemedi. Envanter sistemi kontrol edilmeli.");
+
+                return;
+
+            case FotografCekimTransaksiyonu.Sonuc.Basarili:
+                FlashEfektiBaslat();
+
+                if (debugMesajlari)
+                    Debug.Log("Fotoğraf çekildi. 1 fotoğraf kağıdı tüketildi. Basılı fotoğraf envantere eklendi.");
+
+                StartCoroutine(CekimBeklemeRutini());
+                return;
         }
-
-        FlashEfektiBaslat();
-
-        if (debugMesajlari)
-            Debug.Log("Fotoğraf çekildi. 1 fotoğraf kağıdı tüketildi. Basılı fotoğraf envantere eklendi.");
-
-        StartCoroutine(CekimBeklemeRutini());
     }
 
     private IEnumerator CekimBeklemeRutini()

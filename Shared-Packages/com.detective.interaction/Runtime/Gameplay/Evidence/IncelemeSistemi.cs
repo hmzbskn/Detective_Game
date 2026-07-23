@@ -19,15 +19,9 @@ public class IncelemeSistemi : MonoBehaviour
     [SerializeField] private float baslangicMesafesi = 0.3f;
     [SerializeField] private float incelemeOlcekCarpani = 2.5f;
 
+    private readonly IncelemeTransformSaklayici transformSaklayici = new IncelemeTransformSaklayici();
+
     private GameObject aktifObje;
-    private Transform oncekiParent;
-    private Vector3 oncekiLocalPozisyon;
-    private Quaternion oncekiLocalRotasyon;
-    private Vector3 oncekiLocalScale;
-
-    private Rigidbody aktifRb;
-    private Collider[] aktifColliderlar;
-
     private float mevcutMesafe;
     private bool crosshairOncekiAktiflikDurumu;
 
@@ -63,25 +57,7 @@ public class IncelemeSistemi : MonoBehaviour
 
         OyuncuKontrolKilidi.Kilitle();
 
-        oncekiParent = aktifObje.transform.parent;
-        oncekiLocalPozisyon = aktifObje.transform.localPosition;
-        oncekiLocalRotasyon = aktifObje.transform.localRotation;
-        oncekiLocalScale = aktifObje.transform.localScale;
-
-        aktifRb = aktifObje.GetComponent<Rigidbody>();
-        if (aktifRb != null)
-        {
-            aktifRb.linearVelocity = Vector3.zero;
-            aktifRb.angularVelocity = Vector3.zero;
-            aktifRb.isKinematic = true;
-            aktifRb.useGravity = false;
-        }
-
-        aktifColliderlar = aktifObje.GetComponentsInChildren<Collider>(true);
-        foreach (var col in aktifColliderlar)
-        {
-            col.enabled = false;
-        }
+        transformSaklayici.Kaydet(aktifObje);
 
         if (oyuncuEsyaTutucu != null)
         {
@@ -92,7 +68,7 @@ public class IncelemeSistemi : MonoBehaviour
         aktifObje.transform.localRotation = Quaternion.identity;
         aktifObje.transform.localPosition = Vector3.forward * mevcutMesafe;
 
-        aktifObje.transform.localScale = oncekiLocalScale * incelemeOlcekCarpani;
+        aktifObje.transform.localScale = transformSaklayici.OncekiLocalScale * incelemeOlcekCarpani;
     }
 
     public void IncelemeyiBitir()
@@ -100,28 +76,9 @@ public class IncelemeSistemi : MonoBehaviour
         if (!IncelemeAktifMi || aktifObje == null)
             return;
 
-        aktifObje.transform.SetParent(oncekiParent);
-        aktifObje.transform.localPosition = oncekiLocalPozisyon;
-        aktifObje.transform.localRotation = oncekiLocalRotasyon;
-        aktifObje.transform.localScale = oncekiLocalScale;
-
-        if (aktifRb != null)
-        {
-            aktifRb.isKinematic = true;
-            aktifRb.useGravity = false;
-        }
-
-        if (aktifColliderlar != null)
-        {
-            foreach (var col in aktifColliderlar)
-            {
-                col.enabled = false;
-            }
-        }
+        transformSaklayici.GeriYukle(aktifObje);
 
         aktifObje = null;
-        aktifRb = null;
-        aktifColliderlar = null;
         IncelemeAktifMi = false;
 
         CrosshairGeriGetir();

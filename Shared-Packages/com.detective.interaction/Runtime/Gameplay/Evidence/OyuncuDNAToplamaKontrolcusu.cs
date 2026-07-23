@@ -19,6 +19,9 @@ public class OyuncuDNAToplamaKontrolcusu : MonoBehaviour
     [SerializeField] private bool sistemAktif = true;
     [SerializeField] private bool debugMesajlari = true;
 
+    private BakisRaycastSurucu raycastSurucu;
+    private EtkilesimHighlightYoneticisi highlightYoneticisi;
+
     private DNAToplamaNoktasi bakilanNokta;
 
     private void Awake()
@@ -31,6 +34,9 @@ public class OyuncuDNAToplamaKontrolcusu : MonoBehaviour
 
         if (incelemeSistemi == null)
             incelemeSistemi = FindFirstObjectByType<IncelemeSistemi>();
+
+        raycastSurucu = new BakisRaycastSurucu(toplamaMesafesi, dnaNoktasiKatmani, QueryTriggerInteraction.Collide);
+        highlightYoneticisi = new EtkilesimHighlightYoneticisi();
     }
 
     private void Update()
@@ -77,9 +83,7 @@ public class OyuncuDNAToplamaKontrolcusu : MonoBehaviour
 
     private void BakilanNoktayiGuncelle()
     {
-        Ray ray = new Ray(oyuncuKamerasi.transform.position, oyuncuKamerasi.transform.forward);
-
-        if (Physics.Raycast(ray, out RaycastHit hit, toplamaMesafesi, dnaNoktasiKatmani, QueryTriggerInteraction.Collide))
+        if (raycastSurucu.Raycast(oyuncuKamerasi, out RaycastHit hit))
         {
             DNAToplamaNoktasi yeniNokta = hit.collider.GetComponentInParent<DNAToplamaNoktasi>();
 
@@ -87,10 +91,8 @@ public class OyuncuDNAToplamaKontrolcusu : MonoBehaviour
             {
                 if (bakilanNokta != yeniNokta)
                 {
-                    BakilanNoktayiTemizle();
-
                     bakilanNokta = yeniNokta;
-                    bakilanNokta.HighlightAc();
+                    highlightYoneticisi.Guncelle(bakilanNokta);
 
                     if (debugMesajlari)
                         Debug.Log("DNA alınabilir nokta: " + bakilanNokta.NoktaAdi);
@@ -165,7 +167,7 @@ public class OyuncuDNAToplamaKontrolcusu : MonoBehaviour
     {
         if (bakilanNokta != null)
         {
-            bakilanNokta.HighlightKapat();
+            highlightYoneticisi.Temizle();
             bakilanNokta = null;
         }
     }
