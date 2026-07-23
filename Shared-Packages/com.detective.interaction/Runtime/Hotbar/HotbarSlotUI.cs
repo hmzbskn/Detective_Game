@@ -102,9 +102,7 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
 
         DragPozisyonunuGuncelle(eventData);
 
-        hotbarSistemi.SuruklemeBaslat(100 + hotbarIndex);
-
-        Debug.Log("Hotbar sürükleme başladı. Kaynak index: " + (100 + hotbarIndex));
+        hotbarSistemi.SuruklemeBaslat(SlotAdresleme.HotbarGlobalIndex(hotbarIndex));
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -187,7 +185,7 @@ public class HotbarSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         if (kaynakIndex < 0)
             return;
 
-        int hedefGlobalIndex = 100 + hotbarIndex;
+        int hedefGlobalIndex = SlotAdresleme.HotbarGlobalIndex(hotbarIndex);
 
         if (kaynakIndex == hedefGlobalIndex)
             return;

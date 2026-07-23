@@ -45,13 +45,13 @@ public class HotbarSistemi : MonoBehaviour
     [Tooltip("Scroll yönünü tersine çevirmek için aç.")]
     [SerializeField] private bool mouseScrollYonuTers = false;
 
+    private EnvanterDeposu depo;
+    private EnvanterPanelDurumu envanterPanel;
+
     private InventoryItemStack[] hotbarSlotlari;
     private InventoryItemStack[] envanterSlotlari;
 
     private int aktifHotbarIndex = 0;
-    private bool envanterAcik = false;
-
-    private bool crosshairOncekiAktiflikDurumu;
 
     private float sonMouseScrollZamani = -999f;
 
@@ -59,8 +59,20 @@ public class HotbarSistemi : MonoBehaviour
 
     private void Awake()
     {
-        hotbarSlotlari = YeniStackDizisiOlustur(5);
-        envanterSlotlari = YeniStackDizisiOlustur(10);
+        depo = new EnvanterDeposu(SlotAdresleme.HotbarAdet, SlotAdresleme.EnvanterAdet);
+        hotbarSlotlari = depo.HotbarSlotlari;
+        envanterSlotlari = depo.EnvanterSlotlari;
+
+        envanterPanel = new EnvanterPanelDurumu(
+            envanterMenusuUI,
+            crosshairUI,
+            hotbarKapsayici,
+            hotbarNormalSlot,
+            hotbarEnvanterSlot,
+            oyuncuInput,
+            envanterAcikkenKapatilacakScriptler,
+            envanterAcikkenImlecAcilsin
+        );
 
         for (int i = 0; i < envanterSlotUIleri.Length; i++)
         {
@@ -89,12 +101,10 @@ public class HotbarSistemi : MonoBehaviour
 
     private void Start()
     {
-        envanterAcik = false;
-
         if (envanterMenusuUI != null)
             envanterMenusuUI.SetActive(false);
 
-        HotbariYuvayaTasi(hotbarNormalSlot);
+        envanterPanel.BaslangicYuvasinaTasi();
 
         SlotuSec(0);
         TumUIyiGuncelle();
@@ -103,7 +113,6 @@ public class HotbarSistemi : MonoBehaviour
     private void Update()
     {
         GirdileriOku();
-        HotbarKonumunuEnvanterDurumunaGoreSenkronla();
     }
 
     public List<ItemInstanceData> HotbarVeEnvanterdekiDNADelilInstancelariniGetir()
@@ -142,8 +151,8 @@ public class HotbarSistemi : MonoBehaviour
         if (!aktifSlottaTekAdetVar)
         {
             bool bosYerVar =
-                IlkBosHotbarBul() != -1 ||
-                IlkBosEnvanterBul() != -1;
+                depo.IlkBosHotbarBul() != -1 ||
+                depo.IlkBosEnvanterBul() != -1;
 
             if (!bosYerVar)
             {
@@ -230,7 +239,7 @@ public class HotbarSistemi : MonoBehaviour
 
         if (itemData.StacklenebilirMi)
         {
-            int stackIndex = StacklenebilirSlotBul(hotbarSlotlari, itemData);
+            int stackIndex = depo.StacklenebilirSlotBul(hotbarSlotlari, itemData);
             if (stackIndex != -1)
             {
                 hotbarSlotlari[stackIndex].BirAdetEkle(itemData);
@@ -239,7 +248,7 @@ public class HotbarSistemi : MonoBehaviour
                 return true;
             }
 
-            stackIndex = StacklenebilirSlotBul(envanterSlotlari, itemData);
+            stackIndex = depo.StacklenebilirSlotBul(envanterSlotlari, itemData);
             if (stackIndex != -1)
             {
                 envanterSlotlari[stackIndex].BirAdetEkle(itemData);
@@ -258,7 +267,7 @@ public class HotbarSistemi : MonoBehaviour
             return true;
         }
 
-        int bosHotbarIndex = IlkBosHotbarBul();
+        int bosHotbarIndex = depo.IlkBosHotbarBul();
         if (bosHotbarIndex != -1)
         {
             hotbarSlotlari[bosHotbarIndex].Ayarla(itemData, 1);
@@ -268,7 +277,7 @@ public class HotbarSistemi : MonoBehaviour
             return true;
         }
 
-        int bosEnvanterIndex = IlkBosEnvanterBul();
+        int bosEnvanterIndex = depo.IlkBosEnvanterBul();
         if (bosEnvanterIndex != -1)
         {
             envanterSlotlari[bosEnvanterIndex].Ayarla(itemData, 1);
@@ -336,8 +345,8 @@ public class HotbarSistemi : MonoBehaviour
         if (kaynakGlobalIndex == hedefGlobalIndex)
             return;
 
-        InventoryItemStack kaynakStack = GlobalStackGetir(kaynakGlobalIndex);
-        InventoryItemStack hedefStack = GlobalStackGetir(hedefGlobalIndex);
+        InventoryItemStack kaynakStack = depo.GlobalStackGetir(kaynakGlobalIndex);
+        InventoryItemStack hedefStack = depo.GlobalStackGetir(hedefGlobalIndex);
 
         if (kaynakStack == null || hedefStack == null)
             return;
@@ -345,15 +354,15 @@ public class HotbarSistemi : MonoBehaviour
         if (kaynakStack.BosMu())
             return;
 
-        if (StackleriBirlestir(kaynakStack, hedefStack))
+        if (depo.StackleriBirlestir(kaynakStack, hedefStack))
         {
             AktifEliGuncelle();
             TumUIyiGuncelle();
             return;
         }
 
-        GlobalStackAta(kaynakGlobalIndex, hedefStack);
-        GlobalStackAta(hedefGlobalIndex, kaynakStack);
+        depo.GlobalStackAta(kaynakGlobalIndex, hedefStack);
+        depo.GlobalStackAta(hedefGlobalIndex, kaynakStack);
 
         AktifEliGuncelle();
         TumUIyiGuncelle();
@@ -361,20 +370,15 @@ public class HotbarSistemi : MonoBehaviour
 
     public void GlobalSlottakiEsyayiDunyayaAt(int globalIndex)
     {
-        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+        InventoryItemStack stack = depo.GlobalStackGetir(globalIndex);
         if (stack == null || stack.BosMu())
             return;
 
         ItemInstanceData atilacakInstance = stack.TekAdetlikInstanceOlustur();
         ItemData itemData = stack.ItemData;
 
-        bool aktifHotbarEsyasiMi = false;
-
-        if (globalIndex >= 100 && globalIndex < 105)
-        {
-            int hotbarIndex = globalIndex - 100;
-            aktifHotbarEsyasiMi = hotbarIndex == aktifHotbarIndex;
-        }
+        bool aktifHotbarEsyasiMi = SlotAdresleme.HotbarIndexiMi(globalIndex) &&
+            SlotAdresleme.HotbarLocalIndex(globalIndex) == aktifHotbarIndex;
 
         stack.BirAdetAzalt();
 
@@ -398,18 +402,13 @@ public class HotbarSistemi : MonoBehaviour
     /// </summary>
     public void GlobalSlotuBosalt(int globalIndex)
     {
-        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+        InventoryItemStack stack = depo.GlobalStackGetir(globalIndex);
 
         if (stack == null || stack.BosMu())
             return;
 
-        bool aktifHotbarEsyasiMi = false;
-
-        if (globalIndex >= 100 && globalIndex < 105)
-        {
-            int hotbarIndex = globalIndex - 100;
-            aktifHotbarEsyasiMi = hotbarIndex == aktifHotbarIndex;
-        }
+        bool aktifHotbarEsyasiMi = SlotAdresleme.HotbarIndexiMi(globalIndex) &&
+            SlotAdresleme.HotbarLocalIndex(globalIndex) == aktifHotbarIndex;
 
         stack.Temizle();
 
@@ -425,44 +424,12 @@ public class HotbarSistemi : MonoBehaviour
     /// </summary>
     public ItemInstanceData GlobalSlottakiInstanceOlustur(int globalIndex)
     {
-        InventoryItemStack stack = GlobalStackGetir(globalIndex);
+        InventoryItemStack stack = depo.GlobalStackGetir(globalIndex);
 
         if (stack == null || stack.BosMu())
             return null;
 
         return stack.TekAdetlikInstanceOlustur();
-    }
-
-    private void OyuncuKontrolleriniAyarla(bool aktifMi)
-    {
-        if (oyuncuInput != null)
-            oyuncuInput.enabled = aktifMi;
-
-        if (envanterAcikkenKapatilacakScriptler == null)
-            return;
-
-        foreach (MonoBehaviour script in envanterAcikkenKapatilacakScriptler)
-        {
-            if (script != null)
-                script.enabled = aktifMi;
-        }
-    }
-
-    private void CrosshairGizle()
-    {
-        if (crosshairUI == null)
-            return;
-
-        crosshairOncekiAktiflikDurumu = crosshairUI.activeSelf;
-        crosshairUI.SetActive(false);
-    }
-
-    private void CrosshairGeriGetir()
-    {
-        if (crosshairUI == null)
-            return;
-
-        crosshairUI.SetActive(crosshairOncekiAktiflikDurumu);
     }
 
     public bool SlottaEsyaVarMi(int envanterIndex)
@@ -521,50 +488,18 @@ public class HotbarSistemi : MonoBehaviour
 
     public bool EnvanterAcikMi()
     {
-        return envanterAcik;
+        return envanterPanel.Acik;
     }
 
     public void EnvanteriAc()
     {
-        envanterAcik = true;
-
-        CrosshairGizle();
-
-        if (envanterMenusuUI != null)
-            envanterMenusuUI.SetActive(true);
-
-        HotbariYuvayaTasi(hotbarEnvanterSlot);
-
-        OyuncuKontrolleriniAyarla(false);
-
-        if (envanterAcikkenImlecAcilsin)
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-
+        envanterPanel.Ac();
         TumUIyiGuncelle();
     }
 
     public void EnvanteriKapat()
     {
-        envanterAcik = false;
-
-        HotbariYuvayaTasi(hotbarNormalSlot);
-
-        if (envanterMenusuUI != null)
-            envanterMenusuUI.SetActive(false);
-
-        OyuncuKontrolleriniAyarla(true);
-
-        CrosshairGeriGetir();
-
-        if (envanterAcikkenImlecAcilsin)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
+        envanterPanel.Kapat();
         TumUIyiGuncelle();
     }
 
@@ -670,7 +605,7 @@ public class HotbarSistemi : MonoBehaviour
         {
             while (kalanAdet > 0)
             {
-                int stackIndex = StacklenebilirSlotBul(hotbarSlotlari, itemData);
+                int stackIndex = depo.StacklenebilirSlotBul(hotbarSlotlari, itemData);
 
                 if (stackIndex != -1)
                 {
@@ -679,7 +614,7 @@ public class HotbarSistemi : MonoBehaviour
                     continue;
                 }
 
-                stackIndex = StacklenebilirSlotBul(envanterSlotlari, itemData);
+                stackIndex = depo.StacklenebilirSlotBul(envanterSlotlari, itemData);
 
                 if (stackIndex != -1)
                 {
@@ -688,7 +623,7 @@ public class HotbarSistemi : MonoBehaviour
                     continue;
                 }
 
-                int bosHotbarIndex = IlkBosHotbarBul();
+                int bosHotbarIndex = depo.IlkBosHotbarBul();
                 if (bosHotbarIndex != -1)
                 {
                     int eklenecekMiktar = Mathf.Min(kalanAdet, itemData.MaxStack);
@@ -697,7 +632,7 @@ public class HotbarSistemi : MonoBehaviour
                     continue;
                 }
 
-                int bosEnvanterIndex = IlkBosEnvanterBul();
+                int bosEnvanterIndex = depo.IlkBosEnvanterBul();
                 if (bosEnvanterIndex != -1)
                 {
                     int eklenecekMiktar = Mathf.Min(kalanAdet, itemData.MaxStack);
@@ -716,14 +651,14 @@ public class HotbarSistemi : MonoBehaviour
 
         for (int i = 0; i < kalanAdet; i++)
         {
-            int bosHotbarIndex = IlkBosHotbarBul();
+            int bosHotbarIndex = depo.IlkBosHotbarBul();
             if (bosHotbarIndex != -1)
             {
                 hotbarSlotlari[bosHotbarIndex].Ayarla(itemData, 1);
                 continue;
             }
 
-            int bosEnvanterIndex = IlkBosEnvanterBul();
+            int bosEnvanterIndex = depo.IlkBosEnvanterBul();
             if (bosEnvanterIndex != -1)
             {
                 envanterSlotlari[bosEnvanterIndex].Ayarla(itemData, 1);
@@ -754,7 +689,7 @@ public class HotbarSistemi : MonoBehaviour
             return true;
         }
 
-        int bosHotbarIndex = IlkBosHotbarBul();
+        int bosHotbarIndex = depo.IlkBosHotbarBul();
         if (bosHotbarIndex != -1)
         {
             hotbarSlotlari[bosHotbarIndex].Ayarla(instanceData);
@@ -762,7 +697,7 @@ public class HotbarSistemi : MonoBehaviour
             return true;
         }
 
-        int bosEnvanterIndex = IlkBosEnvanterBul();
+        int bosEnvanterIndex = depo.IlkBosEnvanterBul();
         if (bosEnvanterIndex != -1)
         {
             envanterSlotlari[bosEnvanterIndex].Ayarla(instanceData);
@@ -851,7 +786,7 @@ public class HotbarSistemi : MonoBehaviour
         if (!mouseScrollIleHotbarSecimiAktif)
             return;
 
-        if (envanterAcikkenScrollKapatilsin && envanterAcik)
+        if (envanterAcikkenScrollKapatilsin && envanterPanel.Acik)
             return;
 
         if (Mouse.current == null)
@@ -880,145 +815,10 @@ public class HotbarSistemi : MonoBehaviour
 
     private void EnvanteriAcKapat()
     {
-        if (envanterAcik)
+        if (envanterPanel.Acik)
             EnvanteriKapat();
         else
             EnvanteriAc();
-    }
-
-    private void HotbariYuvayaTasi(RectTransform hedefYuva)
-    {
-        if (hotbarKapsayici == null)
-        {
-            Debug.LogWarning("Hotbar Kapsayici atanmadı.");
-            return;
-        }
-
-        if (hedefYuva == null)
-        {
-            Debug.LogWarning("Hotbar hedef yuvası atanmadı.");
-            return;
-        }
-
-        if (hotbarKapsayici.parent == hedefYuva)
-            return;
-
-        hotbarKapsayici.SetParent(hedefYuva, false);
-
-        hotbarKapsayici.anchorMin = Vector2.zero;
-        hotbarKapsayici.anchorMax = Vector2.one;
-        hotbarKapsayici.pivot = new Vector2(0.5f, 0.5f);
-
-        hotbarKapsayici.offsetMin = Vector2.zero;
-        hotbarKapsayici.offsetMax = Vector2.zero;
-        hotbarKapsayici.anchoredPosition = Vector2.zero;
-        hotbarKapsayici.sizeDelta = Vector2.zero;
-
-        hotbarKapsayici.localScale = Vector3.one;
-        hotbarKapsayici.localRotation = Quaternion.identity;
-
-        hotbarKapsayici.SetAsLastSibling();
-
-        Canvas.ForceUpdateCanvases();
-
-        Debug.Log("Hotbar yeni yuvaya taşındı: " + hedefYuva.name);
-    }
-
-    private void HotbarKonumunuEnvanterDurumunaGoreSenkronla()
-    {
-        if (envanterMenusuUI == null || hotbarKapsayici == null)
-            return;
-
-        bool panelAktif = envanterMenusuUI.activeInHierarchy;
-
-        if (panelAktif)
-        {
-            envanterAcik = true;
-
-            if (hotbarEnvanterSlot != null && hotbarKapsayici.parent != hotbarEnvanterSlot)
-                HotbariYuvayaTasi(hotbarEnvanterSlot);
-        }
-        else
-        {
-            envanterAcik = false;
-
-            if (hotbarNormalSlot != null && hotbarKapsayici.parent != hotbarNormalSlot)
-                HotbariYuvayaTasi(hotbarNormalSlot);
-        }
-    }
-
-    private int IlkBosHotbarBul()
-    {
-        for (int i = 0; i < hotbarSlotlari.Length; i++)
-        {
-            if (hotbarSlotlari[i].BosMu())
-                return i;
-        }
-
-        return -1;
-    }
-
-    private int IlkBosEnvanterBul()
-    {
-        for (int i = 0; i < envanterSlotlari.Length; i++)
-        {
-            if (envanterSlotlari[i].BosMu())
-                return i;
-        }
-
-        return -1;
-    }
-
-    private int StacklenebilirSlotBul(InventoryItemStack[] slotlar, ItemData itemData)
-    {
-        for (int i = 0; i < slotlar.Length; i++)
-        {
-            if (slotlar[i].EklenebilirMi(itemData))
-                return i;
-        }
-
-        return -1;
-    }
-
-    private bool StackleriBirlestir(InventoryItemStack kaynakStack, InventoryItemStack hedefStack)
-    {
-        if (kaynakStack == null || hedefStack == null)
-            return false;
-
-        if (kaynakStack.BosMu() || hedefStack.BosMu())
-            return false;
-
-        if (kaynakStack.RuntimeVerisiVarMi || hedefStack.RuntimeVerisiVarMi)
-            return false;
-
-        if (!kaynakStack.AyniItemMi(hedefStack.ItemData))
-            return false;
-
-        if (!hedefStack.ItemData.StacklenebilirMi)
-            return false;
-
-        int maxStack = hedefStack.ItemData.MaxStack;
-        int hedefAdet = hedefStack.Adet;
-        int kaynakAdet = kaynakStack.Adet;
-
-        if (hedefAdet >= maxStack)
-            return false;
-
-        int bosYer = maxStack - hedefAdet;
-        int aktarilacakMiktar = Mathf.Min(bosYer, kaynakAdet);
-
-        if (aktarilacakMiktar <= 0)
-            return false;
-
-        hedefStack.Ayarla(hedefStack.ItemData, hedefAdet + aktarilacakMiktar);
-
-        int kalanKaynak = kaynakAdet - aktarilacakMiktar;
-        if (kalanKaynak <= 0)
-            kaynakStack.Temizle();
-        else
-            kaynakStack.Ayarla(kaynakStack.ItemData, kalanKaynak);
-
-        return true;
     }
 
     private void EsyaDunyayaBirakildiginda(ItemData itemData)
@@ -1038,41 +838,6 @@ public class HotbarSistemi : MonoBehaviour
 
         AktifEliGuncelle();
         TumUIyiGuncelle();
-    }
-
-    private InventoryItemStack GlobalStackGetir(int globalIndex)
-    {
-        if (globalIndex >= 0 && globalIndex < 10)
-            return envanterSlotlari[globalIndex];
-
-        if (globalIndex >= 100 && globalIndex < 105)
-            return hotbarSlotlari[globalIndex - 100];
-
-        return null;
-    }
-
-    private void GlobalStackAta(int globalIndex, InventoryItemStack stack)
-    {
-        if (globalIndex >= 0 && globalIndex < 10)
-        {
-            envanterSlotlari[globalIndex] = stack;
-            return;
-        }
-
-        if (globalIndex >= 100 && globalIndex < 105)
-        {
-            hotbarSlotlari[globalIndex - 100] = stack;
-        }
-    }
-
-    private InventoryItemStack[] YeniStackDizisiOlustur(int adet)
-    {
-        InventoryItemStack[] dizi = new InventoryItemStack[adet];
-
-        for (int i = 0; i < adet; i++)
-            dizi[i] = new InventoryItemStack();
-
-        return dizi;
     }
 
     private void AktifEliGuncelle()

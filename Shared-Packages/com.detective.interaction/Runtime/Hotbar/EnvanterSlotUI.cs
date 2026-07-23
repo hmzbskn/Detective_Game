@@ -85,7 +85,7 @@ public class EnvanterSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         rt.sizeDelta = new Vector2(80f, 80f);
 
         DragPozisyonunuGuncelle(eventData);
-        hotbarSistemi.SuruklemeBaslat(slotIndex);
+        hotbarSistemi.SuruklemeBaslat(SlotAdresleme.EnvanterGlobalIndex(slotIndex));
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -154,10 +154,12 @@ public class EnvanterSlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
         if (!hotbarSistemi.EnvanterAcikMi()) return;
 
         int kaynakIndex = hotbarSistemi.AktifSuruklenenSlotIndex();
-        if (kaynakIndex < 0) return;
-        if (kaynakIndex == slotIndex) return;
+        int hedefGlobalIndex = SlotAdresleme.EnvanterGlobalIndex(slotIndex);
 
-        hotbarSistemi.SlotlariYerDegistir(kaynakIndex, slotIndex);
+        if (kaynakIndex < 0) return;
+        if (kaynakIndex == hedefGlobalIndex) return;
+
+        hotbarSistemi.SlotlariYerDegistir(kaynakIndex, hedefGlobalIndex);
     }
 
     private void DragPozisyonunuGuncelle(PointerEventData eventData)
