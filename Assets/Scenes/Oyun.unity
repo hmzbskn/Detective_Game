@@ -386,14 +386,6 @@ MonoBehaviour:
   bilgisayarUI: {fileID: 8507810733716532009}
   crosshairUI: {fileID: 5962255555198895291}
   hotbarUI: {fileID: 1271789777469953394}
-  kapatilacakScriptler:
-  - {fileID: 1703317706}
-  - {fileID: 1727753043}
-  - {fileID: 837118459}
-  - {fileID: 1405911471}
-  - {fileID: 132148070}
-  - {fileID: 781459505}
-  - {fileID: 1123942509}
 --- !u!43 &126642651
 Mesh:
   m_ObjectHideFlags: 0
@@ -5825,14 +5817,6 @@ MonoBehaviour:
   oyuncuKamerasi: {fileID: 512847314}
   oyuncuEsyaTutucu: {fileID: 1703317691}
   crosshairUI: {fileID: 5962255555198895291}
-  kapatilacakScriptler:
-  - {fileID: 1703317706}
-  - {fileID: 1727753043}
-  - {fileID: 1954558138}
-  - {fileID: 1405911471}
-  - {fileID: 781459505}
-  - {fileID: 107905044}
-  - {fileID: 1123942509}
   dondurmeHizi: 70
   zoomHizi: 1.5
   minMesafe: 1
@@ -7442,13 +7426,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CinayetTahtasiKontrol
   tahtaPaneli: {fileID: 365620616}
   crosshairUI: {fileID: 5962255555198895291}
-  kapatilacakScriptler:
-  - {fileID: 1727753043}
-  - {fileID: 837118459}
-  - {fileID: 1405911471}
-  - {fileID: 894330208}
-  - {fileID: 781459505}
-  - {fileID: 107905044}
 --- !u!1001 &1159717411
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8185,17 +8162,6 @@ MonoBehaviour:
   crosshairUI: {fileID: 5962255555198895291}
   hotbarUI: {fileID: 1271789777469953394}
   etkilesimPaneli: {fileID: 7816145135704305310}
-  kapatilacakScriptler:
-  - {fileID: 1703317706}
-  - {fileID: 1727753043}
-  - {fileID: 837118459}
-  - {fileID: 1954558138}
-  - {fileID: 1405911471}
-  - {fileID: 894330208}
-  - {fileID: 781459505}
-  - {fileID: 107905044}
-  - {fileID: 1123942509}
-  - {fileID: 1402527449}
 --- !u!1 &1282760227
 GameObject:
   m_ObjectHideFlags: 0
@@ -10849,7 +10815,6 @@ MonoBehaviour:
   fotografModuTusu: 31
   cekimBeklemeSuresi: 0.35
   kagitYoksaModdanCik: 1
-  kapatilacakScriptler: []
   flashCanvasGroup: {fileID: 2053694807}
   flashSuresi: 0.15
   debugMesajlari: 1
@@ -10871,15 +10836,6 @@ MonoBehaviour:
   - {fileID: 7816145135704305310}
   - {fileID: 2788921800983569279}
   - {fileID: 1271789777469953394}
-  kapatilacakScriptler:
-  - {fileID: 1402527449}
-  - {fileID: 837118459}
-  - {fileID: 1954558138}
-  - {fileID: 1405911471}
-  - {fileID: 894330208}
-  - {fileID: 781459505}
-  - {fileID: 107905044}
-  - {fileID: 1123942509}
   oyuncuEsyaTutucu: {fileID: 1703317691}
   cursorKilitliKalsin: 1
 --- !u!114 &1727753043
@@ -12013,6 +11969,8 @@ MonoBehaviour:
   - {fileID: 1703317699}
   - {fileID: 1703317708}
   - {fileID: 1703317714}
+  - {fileID: 1405911471}
+  - {fileID: 781459505}
 --- !u!1 &2011353079
 GameObject:
   m_ObjectHideFlags: 0

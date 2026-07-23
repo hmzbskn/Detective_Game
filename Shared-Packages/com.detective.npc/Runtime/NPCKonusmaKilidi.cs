@@ -10,16 +10,9 @@ public class NPCKonusmaKilidi : MonoBehaviour
     [Header("Konuşma sırasında gizlenecek ekstra UI objeleri")]
     [SerializeField] private GameObject etkilesimPaneli;
 
-    [Header("Konuşma sırasında kapatılacak scriptler")]
-    [SerializeField] private List<MonoBehaviour> kapatilacakScriptler = new List<MonoBehaviour>();
-
     public bool KonusmaKilidiAktifMi { get; private set; }
 
-    private Dictionary<GameObject, bool> oncekiUIDurumlari = new Dictionary<GameObject, bool>();
-    private Dictionary<MonoBehaviour, bool> oncekiScriptDurumlari = new Dictionary<MonoBehaviour, bool>();
-
-    private CursorLockMode oncekiCursorLockState;
-    private bool oncekiCursorVisible;
+    private readonly Dictionary<GameObject, bool> oncekiUIDurumlari = new Dictionary<GameObject, bool>();
 
     private void Start()
     {
@@ -33,11 +26,8 @@ public class NPCKonusmaKilidi : MonoBehaviour
 
         KonusmaKilidiAktifMi = true;
 
-        CursorDurumunuKaydet();
-
         UIObjeleriniGizle();
-        ScriptleriKapat();
-        ImleciSerbestBirak();
+        OyuncuKontrolKilidi.Kilitle();
     }
 
     public void KonusmaKilidiniKapat()
@@ -48,8 +38,7 @@ public class NPCKonusmaKilidi : MonoBehaviour
         KonusmaKilidiAktifMi = false;
 
         UIObjeleriniGeriYukle();
-        ScriptleriAc();
-        CursorDurumunuGeriYukle();
+        OyuncuKontrolKilidi.KilidiKaldir();
     }
 
     private void UIObjeleriniGizle()
@@ -83,57 +72,5 @@ public class NPCKonusmaKilidi : MonoBehaviour
         }
 
         oncekiUIDurumlari.Clear();
-    }
-
-    private void ScriptleriKapat()
-    {
-        oncekiScriptDurumlari.Clear();
-
-        for (int i = 0; i < kapatilacakScriptler.Count; i++)
-        {
-            MonoBehaviour script = kapatilacakScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script == this)
-                continue;
-
-            if (!oncekiScriptDurumlari.ContainsKey(script))
-                oncekiScriptDurumlari.Add(script, script.enabled);
-
-            script.enabled = false;
-        }
-    }
-
-    private void ScriptleriAc()
-    {
-        foreach (KeyValuePair<MonoBehaviour, bool> kayit in oncekiScriptDurumlari)
-        {
-            if (kayit.Key == null)
-                continue;
-
-            kayit.Key.enabled = kayit.Value;
-        }
-
-        oncekiScriptDurumlari.Clear();
-    }
-
-    private void CursorDurumunuKaydet()
-    {
-        oncekiCursorLockState = Cursor.lockState;
-        oncekiCursorVisible = Cursor.visible;
-    }
-
-    private void CursorDurumunuGeriYukle()
-    {
-        Cursor.lockState = oncekiCursorLockState;
-        Cursor.visible = oncekiCursorVisible;
-    }
-
-    private void ImleciSerbestBirak()
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 }

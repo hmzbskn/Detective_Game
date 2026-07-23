@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using StarterAssets;
 
 public class CinayetTahtasiKontrol : MonoBehaviour
 {
@@ -12,22 +10,12 @@ public class CinayetTahtasiKontrol : MonoBehaviour
     [Header("Tahta acikken gizlenecek HUD objeleri")]
     [SerializeField] private GameObject crosshairUI;
 
-    [Header("Bu mod acilinca kapatilacak scriptler")]
-    [SerializeField] private List<MonoBehaviour> kapatilacakScriptler = new List<MonoBehaviour>();
-
     private bool tahtaAcikMi = false;
-    private FirstPersonController fpsKontrol;
-    private EnvanterKontrol envanterSistemi;
-
-    private Dictionary<MonoBehaviour, bool> oncekiScriptDurumlari = new Dictionary<MonoBehaviour, bool>();
 
     private void Start()
     {
         if (tahtaPaneli != null)
             tahtaPaneli.SetActive(false);
-
-        fpsKontrol = FindFirstObjectByType<FirstPersonController>();
-        envanterSistemi = FindFirstObjectByType<EnvanterKontrol>();
 
         tahtaAcikMi = false;
     }
@@ -73,6 +61,9 @@ public class CinayetTahtasiKontrol : MonoBehaviour
         if (tahtaAcikMi)
             return;
 
+        if (OyuncuKontrolKilidi.KilitliMi)
+            return;
+
         tahtaAcikMi = true;
 
         if (tahtaPaneli != null)
@@ -83,25 +74,10 @@ public class CinayetTahtasiKontrol : MonoBehaviour
 
         Time.timeScale = 0f;
 
-        if (fpsKontrol != null)
-            fpsKontrol.enabled = false;
-
-        if (envanterSistemi != null)
-        {
-            envanterSistemi.tahtaModundaMi = true;
-
-            if (envanterSistemi.hotbarPanel != null)
-                envanterSistemi.hotbarPanel.SetActive(false);
-
-            if (envanterSistemi.genelEnvanterPanel != null)
-                envanterSistemi.genelEnvanterPanel.SetActive(false);
-        }
-
         if (crosshairUI != null)
             crosshairUI.SetActive(false);
 
-        ScriptleriKapat();
-        ImleciSerbestBirak();
+        OyuncuKontrolKilidi.Kilitle();
     }
 
     public void TahtayiKapat()
@@ -116,70 +92,9 @@ public class CinayetTahtasiKontrol : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        if (fpsKontrol != null)
-            fpsKontrol.enabled = true;
-
-        if (envanterSistemi != null)
-        {
-            envanterSistemi.tahtaModundaMi = false;
-
-            if (envanterSistemi.hotbarPanel != null)
-                envanterSistemi.hotbarPanel.SetActive(true);
-
-            if (envanterSistemi.genelEnvanterPanel != null)
-                envanterSistemi.genelEnvanterPanel.SetActive(false);
-        }
-
         if (crosshairUI != null)
             crosshairUI.SetActive(true);
 
-        ScriptleriAc();
-        ImleciKilitle();
-    }
-
-    private void ScriptleriKapat()
-    {
-        oncekiScriptDurumlari.Clear();
-
-        for (int i = 0; i < kapatilacakScriptler.Count; i++)
-        {
-            MonoBehaviour script = kapatilacakScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script == this)
-                continue;
-
-            if (!oncekiScriptDurumlari.ContainsKey(script))
-                oncekiScriptDurumlari.Add(script, script.enabled);
-
-            script.enabled = false;
-        }
-    }
-
-    private void ScriptleriAc()
-    {
-        foreach (KeyValuePair<MonoBehaviour, bool> kayit in oncekiScriptDurumlari)
-        {
-            if (kayit.Key == null)
-                continue;
-
-            kayit.Key.enabled = kayit.Value;
-        }
-
-        oncekiScriptDurumlari.Clear();
-    }
-
-    private void ImleciSerbestBirak()
-    {
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
-    }
-
-    private void ImleciKilitle()
-    {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        OyuncuKontrolKilidi.KilidiKaldir();
     }
 }

@@ -3,11 +3,6 @@ using UnityEngine.InputSystem;
 
 public class OyuncuEtkilesim : MonoBehaviour
 {
-    public static OyuncuEtkilesim Instance { get; private set; }
-
-    private static int etkilesimKilitSayisi = 0;
-    public static bool EtkilesimKilitliMi => etkilesimKilitSayisi > 0;
-
     [Header("Ayarlar")]
     [SerializeField] private float mesafe = 3f;
     [SerializeField] private LayerMask etkilesimKatmani;
@@ -35,11 +30,6 @@ public class OyuncuEtkilesim : MonoBehaviour
     private Vector3 sonRayBitis;
     private bool sonRayCarptiMi;
 
-    private void Awake()
-    {
-        Instance = this;
-    }
-
     private void Start()
     {
         anaKamera = Camera.main;
@@ -52,20 +42,8 @@ public class OyuncuEtkilesim : MonoBehaviour
         Temizle();
     }
 
-    private void OnDestroy()
-    {
-        if (Instance == this)
-            Instance = null;
-    }
-
     private void Update()
     {
-        if (EtkilesimKilitliMi)
-        {
-            Temizle();
-            return;
-        }
-
         if (anaKamera == null)
         {
             anaKamera = Camera.main;
@@ -131,40 +109,6 @@ public class OyuncuEtkilesim : MonoBehaviour
         Temizle();
     }
 
-    public static void EtkilesimiKilitle()
-    {
-        etkilesimKilitSayisi++;
-
-        OyuncuEtkilesim oyuncuEtkilesim = Instance;
-
-        if (oyuncuEtkilesim == null)
-            oyuncuEtkilesim = FindFirstObjectByType<OyuncuEtkilesim>();
-
-        if (oyuncuEtkilesim != null)
-            oyuncuEtkilesim.Temizle();
-    }
-
-    public static void EtkilesimKilidiniKaldir()
-    {
-        etkilesimKilitSayisi--;
-
-        if (etkilesimKilitSayisi < 0)
-            etkilesimKilitSayisi = 0;
-    }
-
-    public static void EtkilesimKilidiniSifirla()
-    {
-        etkilesimKilitSayisi = 0;
-
-        OyuncuEtkilesim oyuncuEtkilesim = Instance;
-
-        if (oyuncuEtkilesim == null)
-            oyuncuEtkilesim = FindFirstObjectByType<OyuncuEtkilesim>();
-
-        if (oyuncuEtkilesim != null)
-            oyuncuEtkilesim.Temizle();
-    }
-
     private void RaycastDebugGuncelle(Ray ray, bool carptiMi, RaycastHit hit)
     {
         sonRayBaslangic = ray.origin;
@@ -185,12 +129,6 @@ public class OyuncuEtkilesim : MonoBehaviour
 
     private void UIGuncelle()
     {
-        if (EtkilesimKilitliMi)
-        {
-            Temizle();
-            return;
-        }
-
         if (panel != null)
         {
             panel.Goster(
@@ -205,9 +143,6 @@ public class OyuncuEtkilesim : MonoBehaviour
 
     private void EtkilesimiCalistir()
     {
-        if (EtkilesimKilitliMi)
-            return;
-
         if (aktifTutulabilirObje != null)
         {
             if (esyaTutucu != null && !esyaTutucu.EliBosMu())

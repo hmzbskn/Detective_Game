@@ -11,9 +11,6 @@ public class IncelemeSistemi : MonoBehaviour
     [Header("Inceleme sirasinda gizlenecek UI objeleri")]
     [SerializeField] private GameObject crosshairUI;
 
-    [Header("Inceleme sirasinda kapatilacak scriptler")]
-    [SerializeField] private MonoBehaviour[] kapatilacakScriptler;
-
     [Header("Ayarlar")]
     [SerializeField] private float dondurmeHizi = 15f;
     [SerializeField] private float zoomHizi = 0.01f;
@@ -55,17 +52,16 @@ public class IncelemeSistemi : MonoBehaviour
         if (IncelemeAktifMi || hedefObje == null || incelemeNoktasi == null)
             return;
 
+        if (OyuncuKontrolKilidi.KilitliMi)
+            return;
+
         aktifObje = hedefObje;
         mevcutMesafe = baslangicMesafesi;
         IncelemeAktifMi = true;
 
         CrosshairGizle();
 
-        foreach (var script in kapatilacakScriptler)
-        {
-            if (script != null)
-                script.enabled = false;
-        }
+        OyuncuKontrolKilidi.Kilitle();
 
         oncekiParent = aktifObje.transform.parent;
         oncekiLocalPozisyon = aktifObje.transform.localPosition;
@@ -97,9 +93,6 @@ public class IncelemeSistemi : MonoBehaviour
         aktifObje.transform.localPosition = Vector3.forward * mevcutMesafe;
 
         aktifObje.transform.localScale = oncekiLocalScale * incelemeOlcekCarpani;
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
     }
 
     public void IncelemeyiBitir()
@@ -131,16 +124,9 @@ public class IncelemeSistemi : MonoBehaviour
         aktifColliderlar = null;
         IncelemeAktifMi = false;
 
-        foreach (var script in kapatilacakScriptler)
-        {
-            if (script != null)
-                script.enabled = true;
-        }
-
         CrosshairGeriGetir();
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        OyuncuKontrolKilidi.KilidiKaldir();
     }
 
     private void CrosshairGizle()

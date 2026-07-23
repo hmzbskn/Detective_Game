@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,9 +22,6 @@ public class FotografMakinesiController : MonoBehaviour
     [SerializeField] private float cekimBeklemeSuresi = 0.35f;
     [SerializeField] private bool kagitYoksaModdanCik = false;
 
-    [Header("Bu mod acilinca kapatilacak scriptler")]
-    [SerializeField] private List<MonoBehaviour> kapatilacakScriptler = new List<MonoBehaviour>();
-
     [Header("Efekt")]
     [SerializeField] private CanvasGroup flashCanvasGroup;
     [SerializeField] private float flashSuresi = 0.15f;
@@ -35,7 +31,6 @@ public class FotografMakinesiController : MonoBehaviour
 
     private bool cekimBeklemede;
     private Coroutine flashRoutine;
-    private Dictionary<MonoBehaviour, bool> oncekiScriptDurumlari = new Dictionary<MonoBehaviour, bool>();
 
     private void Awake()
     {
@@ -126,7 +121,6 @@ public class FotografMakinesiController : MonoBehaviour
             return;
 
         fotografModuSistemi.Ac();
-        ScriptleriKapat();
 
         if (debugMesajlari)
             Debug.Log("Fotoğraf modu açıldı.");
@@ -138,7 +132,6 @@ public class FotografMakinesiController : MonoBehaviour
             return;
 
         fotografModuSistemi.Kapat();
-        ScriptleriAc();
 
         if (debugMesajlari)
             Debug.Log("Fotoğraf modu kapatıldı.");
@@ -147,6 +140,12 @@ public class FotografMakinesiController : MonoBehaviour
     private bool FotografModuKullanilabilirMi()
     {
         if (hotbarSistemi == null)
+            return false;
+
+        bool baskaBirModAktif = OyuncuKontrolKilidi.KilitliMi &&
+            (fotografModuSistemi == null || !fotografModuSistemi.ModAktifMi);
+
+        if (baskaBirModAktif)
             return false;
 
         if (hotbarSistemi.EnvanterAcikMi())
@@ -236,40 +235,6 @@ public class FotografMakinesiController : MonoBehaviour
             Debug.Log("Fotoğraf çekildi. 1 fotoğraf kağıdı tüketildi. Basılı fotoğraf envantere eklendi.");
 
         StartCoroutine(CekimBeklemeRutini());
-    }
-
-    private void ScriptleriKapat()
-    {
-        oncekiScriptDurumlari.Clear();
-
-        for (int i = 0; i < kapatilacakScriptler.Count; i++)
-        {
-            MonoBehaviour script = kapatilacakScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script == this)
-                continue;
-
-            if (!oncekiScriptDurumlari.ContainsKey(script))
-                oncekiScriptDurumlari.Add(script, script.enabled);
-
-            script.enabled = false;
-        }
-    }
-
-    private void ScriptleriAc()
-    {
-        foreach (KeyValuePair<MonoBehaviour, bool> kayit in oncekiScriptDurumlari)
-        {
-            if (kayit.Key == null)
-                continue;
-
-            kayit.Key.enabled = kayit.Value;
-        }
-
-        oncekiScriptDurumlari.Clear();
     }
 
     private IEnumerator CekimBeklemeRutini()

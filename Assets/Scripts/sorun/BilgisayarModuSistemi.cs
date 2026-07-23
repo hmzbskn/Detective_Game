@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,12 +10,7 @@ public class BilgisayarModuSistemi : MonoBehaviour
     [SerializeField] private GameObject crosshairUI;
     [SerializeField] private GameObject hotbarUI;
 
-    [Header("Bu mod acilinca kapatilacak scriptler")]
-    [SerializeField] private List<MonoBehaviour> kapatilacakScriptler = new List<MonoBehaviour>();
-
     public bool BilgisayarModuAktifMi { get; private set; }
-
-    private Dictionary<MonoBehaviour, bool> oncekiScriptDurumlari = new Dictionary<MonoBehaviour, bool>();
 
     private void Start()
     {
@@ -26,7 +20,9 @@ public class BilgisayarModuSistemi : MonoBehaviour
         BilgisayarModuAktifMi = false;
 
         HUDGoster();
-        ImleciKilitle();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
@@ -54,6 +50,9 @@ public class BilgisayarModuSistemi : MonoBehaviour
         if (BilgisayarModuAktifMi)
             return;
 
+        if (OyuncuKontrolKilidi.KilitliMi)
+            return;
+
         BilgisayarModuAktifMi = true;
 
         if (bilgisayarUI != null)
@@ -63,8 +62,7 @@ public class BilgisayarModuSistemi : MonoBehaviour
         }
 
         HUDGizle();
-        ScriptleriKapat();
-        ImleciSerbestBirak();
+        OyuncuKontrolKilidi.Kilitle();
     }
 
     public void BilgisayarModunuKapat()
@@ -78,8 +76,7 @@ public class BilgisayarModuSistemi : MonoBehaviour
             bilgisayarUI.SetActive(false);
 
         HUDGoster();
-        ScriptleriAc();
-        ImleciKilitle();
+        OyuncuKontrolKilidi.KilidiKaldir();
     }
 
     private void HUDGizle()
@@ -98,51 +95,5 @@ public class BilgisayarModuSistemi : MonoBehaviour
 
         if (hotbarUI != null)
             hotbarUI.SetActive(true);
-    }
-
-    private void ScriptleriKapat()
-    {
-        oncekiScriptDurumlari.Clear();
-
-        for (int i = 0; i < kapatilacakScriptler.Count; i++)
-        {
-            MonoBehaviour script = kapatilacakScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script == this)
-                continue;
-
-            if (!oncekiScriptDurumlari.ContainsKey(script))
-                oncekiScriptDurumlari.Add(script, script.enabled);
-
-            script.enabled = false;
-        }
-    }
-
-    private void ScriptleriAc()
-    {
-        foreach (KeyValuePair<MonoBehaviour, bool> kayit in oncekiScriptDurumlari)
-        {
-            if (kayit.Key == null)
-                continue;
-
-            kayit.Key.enabled = kayit.Value;
-        }
-
-        oncekiScriptDurumlari.Clear();
-    }
-
-    private void ImleciSerbestBirak()
-    {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
-    private void ImleciKilitle()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
     }
 }

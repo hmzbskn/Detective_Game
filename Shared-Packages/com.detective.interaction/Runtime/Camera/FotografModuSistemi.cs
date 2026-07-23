@@ -9,18 +9,14 @@ public class FotografModuSistemi : MonoBehaviour
     [Header("Fotoğraf Modunda Gizlenecek UI Objeleri")]
     [SerializeField] private GameObject[] gizlenecekUIObjeleri;
 
-    [Header("Fotoğraf Modunda Kapatılacak Scriptler")]
-    [Tooltip("OyuncuEtkilesim, OyuncuEsyaInput gibi scriptleri koy. FotografMakinesiController'ı buraya koyma.")]
-    [SerializeField] private MonoBehaviour[] kapatilacakScriptler;
-
     [Header("Eşya Preview Kilidi")]
     [SerializeField] private OyuncuEsyaTutucu oyuncuEsyaTutucu;
 
     [Header("Cursor")]
+    [Tooltip("Açık iken cursor kilitli/gizli kalsın mı? (Fotoğraf modu nişan alma tabanlı olduğu için varsayılan olarak açık.)")]
     [SerializeField] private bool cursorKilitliKalsin = true;
 
     private readonly Dictionary<GameObject, bool> uiEskiDurumlari = new Dictionary<GameObject, bool>();
-    private readonly Dictionary<MonoBehaviour, bool> scriptEskiDurumlari = new Dictionary<MonoBehaviour, bool>();
 
     public bool ModAktifMi { get; private set; }
 
@@ -38,22 +34,19 @@ public class FotografModuSistemi : MonoBehaviour
         if (ModAktifMi)
             return;
 
+        if (OyuncuKontrolKilidi.KilitliMi)
+            return;
+
         ModAktifMi = true;
 
         UIObjeleriniGizle();
-        ScriptleriKapat();
+        OyuncuKontrolKilidi.Kilitle(!cursorKilitliKalsin);
 
         if (oyuncuEsyaTutucu != null)
             oyuncuEsyaTutucu.PreviewDurdur();
 
         if (fotografOverlay != null)
             fotografOverlay.SetActive(true);
-
-        if (cursorKilitliKalsin)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
     }
 
     public void Kapat()
@@ -67,13 +60,7 @@ public class FotografModuSistemi : MonoBehaviour
             fotografOverlay.SetActive(false);
 
         UIObjeleriniGeriAc();
-        ScriptleriGeriAc();
-
-        if (cursorKilitliKalsin)
-        {
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        OyuncuKontrolKilidi.KilidiKaldir();
     }
 
     private void UIObjeleriniGizle()
@@ -104,38 +91,5 @@ public class FotografModuSistemi : MonoBehaviour
         }
 
         uiEskiDurumlari.Clear();
-    }
-
-    private void ScriptleriKapat()
-    {
-        scriptEskiDurumlari.Clear();
-
-        if (kapatilacakScriptler == null)
-            return;
-
-        for (int i = 0; i < kapatilacakScriptler.Length; i++)
-        {
-            MonoBehaviour script = kapatilacakScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script == this)
-                continue;
-
-            scriptEskiDurumlari[script] = script.enabled;
-            script.enabled = false;
-        }
-    }
-
-    private void ScriptleriGeriAc()
-    {
-        foreach (KeyValuePair<MonoBehaviour, bool> pair in scriptEskiDurumlari)
-        {
-            if (pair.Key != null)
-                pair.Key.enabled = pair.Value;
-        }
-
-        scriptEskiDurumlari.Clear();
     }
 }
