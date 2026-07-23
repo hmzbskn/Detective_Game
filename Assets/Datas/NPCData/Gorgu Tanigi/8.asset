@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4971f42a5effc4eb69cc048e505860, type: 3}
+  m_Name: 8
+  m_EditorClassIdentifier: NewAssembly::DialogueNode
+  npcText: "Sanki\u2026 ikinci bir ayak sesi duydum. Ama emin de\u011Filim."
+  secenekler:
+  - secenekMetni: "Yani orada ba\u015Fka biri daha vard\u0131?"
+    nextNode: {fileID: 11400000, guid: a57a454a4d2cfd94f94723f1a3763c38, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4971f42a5effc4eb69cc048e505860, type: 3}
+  m_Name: 2
+  m_EditorClassIdentifier: NewAssembly::DialogueNode
+  npcText: "Kurban da pek sevilen biri de\u011Fildi. Herkesle bir sorunu vard\u0131."
+  secenekler:
+  - secenekMetni: hmm
+    nextNode: {fileID: 11400000, guid: fefe83fb4be3285498fbe158960b3e69, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}

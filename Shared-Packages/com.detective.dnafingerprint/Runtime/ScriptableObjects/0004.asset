@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 463b974242a695447b643082784840bd, type: 3}
+  m_Name: 0004
+  m_EditorClassIdentifier: Assembly-CSharp::DNAData
+  dnaID: 0004
+  sahibiAdi: "\u015E\xFCpheli 3"
+  ornekTuru: 2
+  spektrum: 04000000020000000000000001000000030000000400000000000000010000000000000004000000
+  dogruEslesmeMi: 1

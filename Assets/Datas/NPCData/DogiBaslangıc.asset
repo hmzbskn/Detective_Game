@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4d0aa597543b224fabff5a8cca073a5, type: 3}
+  m_Name: "DogiBaslang\u0131c"
+  m_EditorClassIdentifier: NewAssembly::NPCData
+  npcId: npc_test_01
+  npcAdi: "Vatanda\u015F"
+  kisaAciklama: "Yan dairede oturan \u0131rz d\xFC\u015Fman\u0131 kom\u015Fu"
+  portrait: {fileID: 0}
+  baslangicNode: {fileID: 11400000, guid: e769c8529b4ca444b897ec853ef7d7d2, type: 2}

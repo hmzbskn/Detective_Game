@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a4971f42a5effc4eb69cc048e505860, type: 3}
+  m_Name: 4
+  m_EditorClassIdentifier: NewAssembly::DialogueNode
+  npcText: "Evet\u2026 ba\u011F\u0131r\u0131\u015F gibi bir \u015Fey duydum. Tart\u0131\u015F\u0131yorlard\u0131
+    san\u0131r\u0131m."
+  secenekler:
+  - secenekMetni: "Kim tart\u0131\u015F\u0131yordu?"
+    nextNode: {fileID: 11400000, guid: 2b9eaf772afeb8143813ff6e5bb71211, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}
+  - secenekMetni: Sonra ne oldu?
+    nextNode: {fileID: 11400000, guid: 133f6b41965ab80489e9c5ec4c3dd2b0, type: 2}
+    sadeceBirKezSorulsun: 0
+    secildiMi: 0
+    gerekliDelil: {fileID: 0}
+    dogruDelilMi: 0
+    yanlisDelilNode: {fileID: 0}
