@@ -20,7 +20,4 @@ public class DNAData : ScriptableObject
     [Header("Spektrum")]
     [Tooltip("0-4 arası yoğunluk")]
     public int[] spektrum = new int[10];
-
-    [Header("Eski sistem uyumluluğu")]
-    public bool dogruEslesmeMi;
 }

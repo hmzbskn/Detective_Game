@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,8 +24,7 @@ public class NPCDialogueUI : MonoBehaviour
     [Header("Envanter Kontrolü")]
     [SerializeField] private HotbarSistemi hotbarSistemi;
 
-    private NPCController aktifNPC;
-    private DialogueNode aktifNode;
+    private readonly DiyalogAkisi akis = new DiyalogAkisi();
 
     private void Awake()
     {
@@ -48,8 +48,7 @@ public class NPCDialogueUI : MonoBehaviour
         if (npc == null || baslangicNode == null)
             return;
 
-        aktifNPC = npc;
-        aktifNode = baslangicNode;
+        akis.Baslat(npc, baslangicNode);
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
@@ -63,13 +62,13 @@ public class NPCDialogueUI : MonoBehaviour
 
     private void NodeGoster()
     {
-        if (aktifNode == null)
+        if (akis.AktifNode == null)
             return;
 
         if (dialogueText != null)
-            dialogueText.text = aktifNode.npcText;
+            dialogueText.text = akis.AktifNode.npcText;
 
-        if (aktifNode.secenekler == null || aktifNode.secenekler.Length == 0)
+        if (akis.AktifNode.secenekler == null || akis.AktifNode.secenekler.Length == 0)
         {
             if (choicePanel != null)
                 choicePanel.SetActive(false);
@@ -82,89 +81,44 @@ public class NPCDialogueUI : MonoBehaviour
 
     private void SecenekleriGoster()
     {
+        List<DialogueChoice> uygunSecenekler =
+            akis.UygunSecenekleriGetir(item => hotbarSistemi != null && hotbarSistemi.ItemVarMi(item));
+
         if (choicePanel != null)
             choicePanel.SetActive(true);
 
-        int aktifButonIndex = 0;
-
-        for (int i = 0; i < aktifNode.secenekler.Length; i++)
+        for (int i = 0; i < choiceButtons.Length; i++)
         {
-            DialogueChoice secim = aktifNode.secenekler[i];
-
-            if (secim == null)
+            if (choiceButtons[i] == null)
                 continue;
 
-            if (secim.sadeceBirKezSorulsun && secim.secildiMi)
-                continue;
-
-            if (secim.gerekliDelil != null)
+            if (i >= uygunSecenekler.Count)
             {
-                if (hotbarSistemi == null || !hotbarSistemi.ItemVarMi(secim.gerekliDelil))
-                    continue;
-            }
-
-            if (aktifButonIndex >= choiceButtons.Length)
-                break;
-
-            Button buton = choiceButtons[aktifButonIndex];
-
-            if (buton == null)
-            {
-                aktifButonIndex++;
+                choiceButtons[i].gameObject.SetActive(false);
                 continue;
             }
 
-            buton.gameObject.SetActive(true);
+            DialogueChoice secim = uygunSecenekler[i];
 
-            TextMeshProUGUI butonText = buton.GetComponentInChildren<TextMeshProUGUI>();
+            choiceButtons[i].gameObject.SetActive(true);
+
+            TextMeshProUGUI butonText = choiceButtons[i].GetComponentInChildren<TextMeshProUGUI>();
             if (butonText != null)
                 butonText.text = secim.secenekMetni;
 
-            int index = i;
-            buton.onClick.RemoveAllListeners();
-            buton.onClick.AddListener(() => SecimYap(index));
-
-            aktifButonIndex++;
-        }
-
-        for (int i = aktifButonIndex; i < choiceButtons.Length; i++)
-        {
-            if (choiceButtons[i] != null)
-                choiceButtons[i].gameObject.SetActive(false);
+            choiceButtons[i].onClick.RemoveAllListeners();
+            choiceButtons[i].onClick.AddListener(() => SecimYap(secim));
         }
     }
 
-    private void SecimYap(int index)
+    private void SecimYap(DialogueChoice secim)
     {
-        if (aktifNode == null || aktifNode.secenekler == null || index < 0 || index >= aktifNode.secenekler.Length)
-            return;
-
-        DialogueChoice secim = aktifNode.secenekler[index];
-        if (secim == null)
-            return;
-
-        secim.secildiMi = true;
-
-        if (secim.sadeceBirKezSorulsun && aktifNPC != null)
-            aktifNPC.SoruKaydet(secim.secenekMetni);
-
-        // 🔥 BURASI YENİ
-        if (secim.gerekliDelil != null)
-        {
-            if (secim.dogruDelilMi)
-                aktifNode = secim.nextNode;
-            else
-                aktifNode = secim.yanlisDelilNode;
-        }
-        else
-        {
-            aktifNode = secim.nextNode;
-        }
+        bool bittiMi = akis.SecimYap(secim);
 
         if (choicePanel != null)
             choicePanel.SetActive(false);
 
-        if (aktifNode == null)
+        if (bittiMi)
         {
             DiyalogBitir();
             return;
@@ -187,11 +141,10 @@ public class NPCDialogueUI : MonoBehaviour
         if (dialogueText != null)
             dialogueText.text = string.Empty;
 
-        if (aktifNPC != null)
-            aktifNPC.KonusmayiBitir();
+        if (akis.AktifNPC != null)
+            akis.AktifNPC.KonusmayiBitir();
 
-        aktifNPC = null;
-        aktifNode = null;
+        akis.Bitir();
 
         OyunKontrolleriniKilitle(false);
     }

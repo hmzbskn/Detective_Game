@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class LabPenceresiAcici : MonoBehaviour
@@ -9,8 +10,13 @@ public class LabPenceresiAcici : MonoBehaviour
     [SerializeField] private RectTransform uygulamaHavuzu;
     [SerializeField] private RectTransform dnaSystem;
 
-    [Header("Reset")]
-    [SerializeField] private GameObject dnaSorgulamaKoprusuObjesi;
+    /// <summary>
+    /// Lab penceresi her açıldığında tetiklenir. Detective.UI paketi Assembly-CSharp'taki Bridge
+    /// sınıflarını (BilgisayarDNASorgulamaKoprusu gibi) derleme zamanında göremediği için, ekranı
+    /// sıfırlama sorumluluğu artık SendMessage/tip-adı taraması yerine bu event üzerinden Bridge'e
+    /// (zaten her iki tarafı da gören Assembly-CSharp katmanına) bırakılıyor.
+    /// </summary>
+    public event Action LabAcildi;
 
     public void LabAc()
     {
@@ -32,42 +38,6 @@ public class LabPenceresiAcici : MonoBehaviour
 
         dnaSystem.gameObject.SetActive(true);
 
-        EkraniSifirla();
+        LabAcildi?.Invoke();
     }
-
-    private void EkraniSifirla()
-    {
-        if (dnaSorgulamaKoprusuObjesi != null)
-        {
-            dnaSorgulamaKoprusuObjesi.SendMessage(
-                "EkraniSifirla",
-                SendMessageOptions.DontRequireReceiver
-            );
-
-            return;
-        }
-
-        if (dnaSystem == null)
-            return;
-
-        MonoBehaviour[] butunScriptler = dnaSystem.GetComponentsInChildren<MonoBehaviour>(true);
-
-        for (int i = 0; i < butunScriptler.Length; i++)
-        {
-            MonoBehaviour script = butunScriptler[i];
-
-            if (script == null)
-                continue;
-
-            if (script.GetType().Name == "BilgisayarDNASorgulamaKoprusu")
-            {
-                script.gameObject.SendMessage(
-                    "EkraniSifirla",
-                    SendMessageOptions.DontRequireReceiver
-                );
-
-                return;
-            }
-        }
-    }
-}   
+}

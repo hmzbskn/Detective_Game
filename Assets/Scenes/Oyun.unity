@@ -18377,6 +18377,7 @@ MonoBehaviour:
   hotbarSistemi: {fileID: 1954558138}
   dnaSystem: {fileID: 7996031227074507549}
   dnaMiniGameManager: {fileID: 894330208}
+  labPenceresiAcici: {fileID: 0}
   baslatButonu: {fileID: 1357306305278678113}
   durumText: {fileID: 1374715423841286971}
   debugMesajlari: 1
@@ -22950,7 +22951,6 @@ MonoBehaviour:
   labPenceresi: {fileID: 2794681725501847956}
   uygulamaHavuzu: {fileID: 9213138112826723122}
   dnaSystem: {fileID: 5789309153639165278}
-  dnaSorgulamaKoprusuObjesi: {fileID: 4043706325897612627}
 --- !u!114 &7435925570131264447
 MonoBehaviour:
   m_ObjectHideFlags: 0

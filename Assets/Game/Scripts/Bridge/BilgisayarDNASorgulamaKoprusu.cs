@@ -8,6 +8,7 @@ public class BilgisayarDNASorgulamaKoprusu : MonoBehaviour
     [SerializeField] private HotbarSistemi hotbarSistemi;
     [SerializeField] private GameObject dnaSystem;
     [SerializeField] private DNAMiniGameManager dnaMiniGameManager;
+    [SerializeField] private LabPenceresiAcici labPenceresiAcici;
 
     [Header("UI")]
     [SerializeField] private GameObject baslatButonu;
@@ -25,6 +26,15 @@ public class BilgisayarDNASorgulamaKoprusu : MonoBehaviour
     {
         ReferanslariTamamla();
         EkraniSifirla();
+
+        if (labPenceresiAcici != null)
+            labPenceresiAcici.LabAcildi += EkraniSifirla;
+    }
+
+    private void OnDisable()
+    {
+        if (labPenceresiAcici != null)
+            labPenceresiAcici.LabAcildi -= EkraniSifirla;
     }
 
     private void ReferanslariTamamla()
@@ -34,6 +44,9 @@ public class BilgisayarDNASorgulamaKoprusu : MonoBehaviour
 
         if (dnaMiniGameManager == null && dnaSystem != null)
             dnaMiniGameManager = dnaSystem.GetComponentInChildren<DNAMiniGameManager>(true);
+
+        if (labPenceresiAcici == null)
+            labPenceresiAcici = FindFirstObjectByType<LabPenceresiAcici>();
     }
 
     public void EkraniSifirla()

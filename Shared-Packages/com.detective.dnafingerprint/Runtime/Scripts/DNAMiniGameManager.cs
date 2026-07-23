@@ -30,9 +30,26 @@ public class DNAMiniGameManager : MonoBehaviour
     [SerializeField] private float supheliOncesiBekleme = 2f;
     [SerializeField] private float supheliGostermeSuresi = 3f;
 
+    private DNAAnaliziGorunumu gorunum;
+
     private int aktifSupheliIndex = 0;
     private bool cevapBekleniyor = false;
     private Coroutine aktifAkis;
+
+    private void Awake()
+    {
+        gorunum = new DNAAnaliziGorunumu(
+            spectrumRect,
+            spectrumDisplay,
+            soruAlani,
+            soruText,
+            durumText,
+            sonucPaneli,
+            sonucBaslikText,
+            sonucDetayText,
+            spectrumMerkezPozisyon
+        );
+    }
 
     private void Start()
     {
@@ -72,80 +89,44 @@ public class DNAMiniGameManager : MonoBehaviour
         aktifSupheliIndex = 0;
         cevapBekleniyor = false;
 
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
-
-        if (soruText != null)
-            soruText.text = "";
-
-        if (durumText != null)
-            durumText.text = "";
-
-        if (sonucPaneli != null)
-            sonucPaneli.SetActive(false);
-
-        if (sonucBaslikText != null)
-            sonucBaslikText.text = "";
-
-        if (sonucDetayText != null)
-            sonucDetayText.text = "";
-
-        if (spectrumDisplay != null)
-            spectrumDisplay.Temizle();
-
-        if (spectrumRect != null)
-        {
-            spectrumRect.anchoredPosition = spectrumMerkezPozisyon;
-            spectrumRect.gameObject.SetActive(false);
-        }
+        gorunum.Sifirla();
     }
 
     private IEnumerator OyunAkisi()
     {
         if (olayYeriDNA == null)
         {
-            SonucGoster(
-                "ANALİZ BAŞLATILAMADI",
-                "Olay yerinden alınmış DNA örneği bulunamadı.\n\nÖnce cesetten veya olay yerinden DNA örneği alınmalıdır."
-            );
+            SonucGoster(DNAAnaliziMetinleri.AnalizBaslatilamadiBaslik, DNAAnaliziMetinleri.OlayYeriDNAsiYok);
             yield break;
         }
 
         if (supheliDNAlar == null || supheliDNAlar.Length == 0)
         {
-            SonucGoster(
-                "ANALİZ BAŞLATILAMADI",
-                "Şüphelilerden alınmış DNA örneği bulunamadı.\n\nEn az bir şüpheliden DNA örneği alınmalıdır."
-            );
+            SonucGoster(DNAAnaliziMetinleri.AnalizBaslatilamadiBaslik, DNAAnaliziMetinleri.SupheliDNAsiYok);
             yield break;
         }
 
         aktifSupheliIndex = 0;
         cevapBekleniyor = false;
 
-        SpectrumuMerkezeAl();
+        gorunum.SpectrumuMerkezeAl();
 
-        if (spectrumDisplay != null)
-        {
-            spectrumDisplay.Temizle();
-            yield return null;
-            spectrumDisplay.DNAGoster(olayYeriDNA);
-        }
+        gorunum.SpectrumTemizle();
+        yield return null;
+        gorunum.SpectrumGoster(olayYeriDNA);
 
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
+        gorunum.SoruAlaniniAc(false);
 
         float kalanSure = olayYeriDNASuresi;
 
         while (kalanSure > 0)
         {
-            DurumYaz("Olay yerinde bulunan DNA inceleniyor... " + Mathf.CeilToInt(kalanSure));
+            gorunum.DurumYaz(DNAAnaliziMetinleri.OlayYeriIncelemeDurumu(Mathf.CeilToInt(kalanSure)));
             kalanSure -= Time.deltaTime;
             yield return null;
         }
 
-        if (spectrumDisplay != null)
-            spectrumDisplay.Temizle();
+        gorunum.SpectrumTemizle();
 
         yield return new WaitForSeconds(supheliOncesiBekleme);
 
@@ -156,18 +137,13 @@ public class DNAMiniGameManager : MonoBehaviour
     {
         if (supheliDNAlar == null || aktifSupheliIndex >= supheliDNAlar.Length)
         {
-            SonucGoster(
-                "DNA EŞLEŞMESİ BULUNAMADI",
-                "Olay yeri DNA’sı, alınan şüpheli DNA örneklerinin hiçbiriyle eşleşmedi.\n\n" +
-                "Sonuç: Mevcut DNA örnekleri katili doğrulamak için yeterli değildir."
-            );
+            SonucGoster(DNAAnaliziMetinleri.EslesmeBulunamadiBaslik, DNAAnaliziMetinleri.EslesmeBulunamadiDetay);
             yield break;
         }
 
         cevapBekleniyor = false;
 
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
+        gorunum.SoruAlaniniAc(false);
 
         DNAData aktifSupheliDNA = supheliDNAlar[aktifSupheliIndex];
 
@@ -178,35 +154,25 @@ public class DNAMiniGameManager : MonoBehaviour
             yield break;
         }
 
-        SpectrumuMerkezeAl();
+        gorunum.SpectrumuMerkezeAl();
 
-        if (spectrumDisplay != null)
-        {
-            spectrumDisplay.Temizle();
-            yield return null;
-            spectrumDisplay.DNAGoster(aktifSupheliDNA);
-        }
+        gorunum.SpectrumTemizle();
+        yield return null;
+        gorunum.SpectrumGoster(aktifSupheliDNA);
 
         float kalanSure = supheliGostermeSuresi;
 
         while (kalanSure > 0)
         {
-            DurumYaz(aktifSupheliDNA.sahibiAdi + " DNA'sı inceleniyor... " + Mathf.CeilToInt(kalanSure));
+            gorunum.DurumYaz(DNAAnaliziMetinleri.SupheliIncelemeDurumu(aktifSupheliDNA.sahibiAdi, Mathf.CeilToInt(kalanSure)));
             kalanSure -= Time.deltaTime;
             yield return null;
         }
 
-        DurumYaz("");
+        gorunum.DurumYaz("");
 
-        if (soruText != null)
-        {
-            soruText.text =
-                aktifSupheliDNA.sahibiAdi +
-                " DNA’sı olay yerinde bulunan DNA ile eşleşiyor mu?";
-        }
-
-        if (soruAlani != null)
-            soruAlani.SetActive(true);
+        gorunum.SoruYaz(DNAAnaliziMetinleri.EslesmeSorusu(aktifSupheliDNA.sahibiAdi));
+        gorunum.SoruAlaniniAc(true);
 
         cevapBekleniyor = true;
     }
@@ -218,17 +184,13 @@ public class DNAMiniGameManager : MonoBehaviour
 
         DNAData aktifSupheliDNA = supheliDNAlar[aktifSupheliIndex];
 
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
+        gorunum.SoruAlaniniAc(false);
 
         cevapBekleniyor = false;
 
         SonucGoster(
-            "DNA RAPORU OLUŞTURULDU",
-            "Olay yeri DNA’sı ile " + GuvenliAd(aktifSupheliDNA) + " DNA’sı eşleşti olarak rapora işlendi.\n\n" +
-            "Olay yeri DNA’sı: " + GuvenliAd(olayYeriDNA) + "\n" +
-            "Raporlanan şüpheli: " + GuvenliAd(aktifSupheliDNA) + "\n\n" +
-            "Sonuç: Bu eşleşme soruşturma dosyasına delil olarak eklendi."
+            DNAAnaliziMetinleri.RaporOlusturulduBaslik,
+            DNAAnaliziMetinleri.RaporOlusturulduDetay(GuvenliAd(olayYeriDNA), GuvenliAd(aktifSupheliDNA))
         );
 
         // İstersen burada ileride rapor sistemine kayıt atarsın:
@@ -240,10 +202,7 @@ public class DNAMiniGameManager : MonoBehaviour
         if (!cevapBekleniyor)
             return;
 
-        DNAData aktifSupheliDNA = supheliDNAlar[aktifSupheliIndex];
-
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
+        gorunum.SoruAlaniniAc(false);
 
         cevapBekleniyor = false;
 
@@ -252,10 +211,8 @@ public class DNAMiniGameManager : MonoBehaviour
         if (aktifSupheliIndex >= supheliDNAlar.Length)
         {
             SonucGoster(
-                "DNA RAPORU TAMAMLANDI",
-                "Olay yeri DNA’sı ile mevcut şüpheli DNA örnekleri arasında eşleşme raporlanmadı.\n\n" +
-                "Olay yeri DNA’sı: " + GuvenliAd(olayYeriDNA) + "\n\n" +
-                "Sonuç: Yeni şüpheli DNA örnekleri toplanabilir veya mevcut soruşturma farklı delillerle sürdürülebilir."
+                DNAAnaliziMetinleri.RaporTamamlandiBaslik,
+                DNAAnaliziMetinleri.RaporTamamlandiDetay(GuvenliAd(olayYeriDNA))
             );
 
             return;
@@ -266,45 +223,14 @@ public class DNAMiniGameManager : MonoBehaviour
 
     private IEnumerator SupheliArasiGecis()
     {
-        if (spectrumDisplay != null)
-            spectrumDisplay.Temizle();
+        gorunum.SpectrumTemizle();
+        gorunum.SpectrumuMerkezeAl();
 
-        SpectrumuMerkezeAl();
-
-        DurumYaz("Bu DNA eşleşmedi. Sıradaki şüpheli DNA hazırlanıyor...");
+        gorunum.DurumYaz(DNAAnaliziMetinleri.SupheliGecisDurumu);
 
         yield return new WaitForSeconds(supheliOncesiBekleme);
 
         aktifAkis = StartCoroutine(SiradakiSupheliyiGoster());
-    }
-
-    private bool DNALarEslesiyorMu(DNAData birinci, DNAData ikinci)
-    {
-        if (birinci == null || ikinci == null)
-            return false;
-
-        if (birinci.spektrum == null || ikinci.spektrum == null)
-            return false;
-
-        if (birinci.spektrum.Length != ikinci.spektrum.Length)
-            return false;
-
-        for (int i = 0; i < birinci.spektrum.Length; i++)
-        {
-            if (birinci.spektrum[i] != ikinci.spektrum[i])
-                return false;
-        }
-
-        return true;
-    }
-
-    private void SpectrumuMerkezeAl()
-    {
-        if (spectrumRect == null)
-            return;
-
-        spectrumRect.gameObject.SetActive(true);
-        spectrumRect.anchoredPosition = spectrumMerkezPozisyon;
     }
 
     private void SonucGoster(string baslik, string detay)
@@ -317,25 +243,7 @@ public class DNAMiniGameManager : MonoBehaviour
 
         cevapBekleniyor = false;
 
-        if (soruAlani != null)
-            soruAlani.SetActive(false);
-
-        if (spectrumDisplay != null)
-            spectrumDisplay.Temizle();
-
-        if (spectrumRect != null)
-            spectrumRect.gameObject.SetActive(false);
-
-        if (sonucPaneli != null)
-            sonucPaneli.SetActive(true);
-
-        if (sonucBaslikText != null)
-            sonucBaslikText.text = baslik;
-
-        if (sonucDetayText != null)
-            sonucDetayText.text = detay;
-
-        DurumYaz(baslik);
+        gorunum.SonucGoster(baslik, detay);
     }
 
     private string GuvenliAd(DNAData dna)
@@ -350,13 +258,5 @@ public class DNAMiniGameManager : MonoBehaviour
             return dna.dnaID;
 
         return "İsimsiz DNA";
-    }
-
-    private void DurumYaz(string mesaj)
-    {
-        if (durumText != null)
-            durumText.text = mesaj;
-
-        Debug.Log(mesaj);
     }
 }
