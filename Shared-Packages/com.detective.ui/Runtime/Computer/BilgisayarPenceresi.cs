@@ -18,8 +18,14 @@ public class BilgisayarPenceresi : MonoBehaviour
     [Header("Pencere Bilgisi")]
     [SerializeField] private string pencereAdi = "Uygulama";
 
+    [Header("Varsayılan Pencere Boyutu")]
+    [Tooltip("Pencere ilk açıldığında ortalanıp bu boyuta getirilir. Sonraki açılışlarda oyuncunun sürükleyip boyutlandırdığı konum/boyut korunur.")]
+    [SerializeField] private Vector2 varsayilanBoyut = new Vector2(900, 600);
+
     public PencereDurumu Durum { get; private set; } = PencereDurumu.Kapali;
     public string PencereAdi => pencereAdi;
+
+    private bool ilkKonumAyarlandi;
 
     private void Awake()
     {
@@ -43,7 +49,13 @@ public class BilgisayarPenceresi : MonoBehaviour
     public void Ac()
     {
         gameObject.SetActive(true);
-        TamEkranYerlestir();
+
+        if (!ilkKonumAyarlandi)
+        {
+            VarsayilanKonumaYerlestir();
+            ilkKonumAyarlandi = true;
+        }
+
         ONeGetir();
 
         if (Durum == PencereDurumu.Kapali)
@@ -70,17 +82,16 @@ public class BilgisayarPenceresi : MonoBehaviour
         transform.SetAsLastSibling();
     }
 
-    private void TamEkranYerlestir()
+    private void VarsayilanKonumaYerlestir()
     {
         if (pencereRect == null)
             return;
 
-        pencereRect.anchorMin = Vector2.zero;
-        pencereRect.anchorMax = Vector2.one;
+        pencereRect.anchorMin = new Vector2(0.5f, 0.5f);
+        pencereRect.anchorMax = new Vector2(0.5f, 0.5f);
         pencereRect.pivot = new Vector2(0.5f, 0.5f);
 
-        pencereRect.offsetMin = Vector2.zero;
-        pencereRect.offsetMax = Vector2.zero;
+        pencereRect.sizeDelta = varsayilanBoyut;
         pencereRect.anchoredPosition = Vector2.zero;
         pencereRect.localScale = Vector3.one;
     }

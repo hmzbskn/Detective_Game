@@ -7426,6 +7426,99 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CinayetTahtasiKontrol
   tahtaPaneli: {fileID: 365620616}
   crosshairUI: {fileID: 5962255555198895291}
+--- !u!1 &1153977810
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1153977811}
+  - component: {fileID: 1153977814}
+  - component: {fileID: 1153977813}
+  - component: {fileID: 1153977812}
+  m_Layer: 5
+  m_Name: boyutlandirmaTutamaci
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1153977811
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153977810}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -2.54081}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 805143266449526736}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 1, y: 0}
+--- !u!114 &1153977812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153977810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39ba4d956de3414eb000336df1b1abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereBoyutlayici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
+  minimumBoyut: {x: 500, y: 350}
+  maksimumBoyut: {x: 1200, y: 800}
+--- !u!114 &1153977813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153977810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.35}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1153977814
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1153977810}
+  m_CullTransparentMesh: 1
 --- !u!1001 &1159717411
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7684,6 +7777,99 @@ RectTransform:
   m_AnchoredPosition: {x: 500, y: -300}
   m_SizeDelta: {x: 60, y: 60}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &1168871874
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1168871875}
+  - component: {fileID: 1168871878}
+  - component: {fileID: 1168871877}
+  - component: {fileID: 1168871876}
+  m_Layer: 5
+  m_Name: boyutlandirmaTutamaci
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1168871875
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168871874}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -2.54081}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5150652482645600768}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 1, y: 0}
+--- !u!114 &1168871876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168871874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39ba4d956de3414eb000336df1b1abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereBoyutlayici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
+  minimumBoyut: {x: 500, y: 350}
+  maksimumBoyut: {x: 1200, y: 800}
+--- !u!114 &1168871877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168871874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.35}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1168871878
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168871874}
+  m_CullTransparentMesh: 1
 --- !u!1 &1172047658
 GameObject:
   m_ObjectHideFlags: 0
@@ -8741,6 +8927,99 @@ Transform:
   m_Children: []
   m_Father: {fileID: 717019804}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1392826617
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1392826618}
+  - component: {fileID: 1392826621}
+  - component: {fileID: 1392826620}
+  - component: {fileID: 1392826619}
+  m_Layer: 5
+  m_Name: boyutlandirmaTutamaci
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1392826618
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392826617}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -2.54081}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3364511387119155987}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 1, y: 0}
+--- !u!114 &1392826619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392826617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39ba4d956de3414eb000336df1b1abc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereBoyutlayici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
+  minimumBoyut: {x: 500, y: 350}
+  maksimumBoyut: {x: 1200, y: 800}
+--- !u!114 &1392826620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392826617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.35}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1392826621
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392826617}
+  m_CullTransparentMesh: 1
 --- !u!1 &1402527442 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7106152548817518982, guid: 96aabdef183669f4e91d208d36f9f56c, type: 3}
@@ -14565,12 +14844,13 @@ RectTransform:
   m_Children:
   - {fileID: 2337982492758729334}
   - {fileID: 9213138112826723122}
+  - {fileID: 1153977811}
   m_Father: {fileID: 8425791513961618436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 900, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &842330769850053208
 RectTransform:
@@ -16531,6 +16811,7 @@ MonoBehaviour:
   taskbarYoneticisi: {fileID: 5898979551049064913}
   pencereBaslikText: {fileID: 1479111594504278118}
   pencereAdi: "Veri Taban\u0131"
+  varsayilanBoyut: {x: 900, y: 600}
 --- !u!1 &2110816667754176818
 GameObject:
   m_ObjectHideFlags: 0
@@ -17564,6 +17845,7 @@ MonoBehaviour:
   taskbarYoneticisi: {fileID: 5898979551049064913}
   pencereBaslikText: {fileID: 1479743528305779716}
   pencereAdi: LAB
+  varsayilanBoyut: {x: 900, y: 600}
 --- !u!222 &2810774466553929170
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -17979,7 +18261,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3161049198653480931
 RectTransform:
   m_ObjectHideFlags: 0
@@ -18242,6 +18524,7 @@ RectTransform:
   m_Children:
   - {fileID: 5795915271665327555}
   - {fileID: 8251856078719050069}
+  - {fileID: 1392826618}
   m_Father: {fileID: 8425791513961618436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -20265,6 +20548,7 @@ RectTransform:
   m_Children:
   - {fileID: 3965249426065023994}
   - {fileID: 932672984708787454}
+  - {fileID: 1168871875}
   m_Father: {fileID: 8425791513961618436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -20889,6 +21173,7 @@ GameObject:
   - component: {fileID: 4682901035910167492}
   - component: {fileID: 3688041642638242227}
   - component: {fileID: 1411417901115321522}
+  - component: {fileID: 5795915271665327556}
   m_Layer: 5
   m_Name: "\xFCstbar"
   m_TagString: Untagged
@@ -21085,6 +21370,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 32}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &5795915271665327556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5693038650179528792}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2666503c3a58946489a48803a5853015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereSurukleyici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
 --- !u!114 &5807606605173588366
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -22909,10 +23209,10 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7288259093580969928}
-  - {fileID: 8570297292853288163}
   - {fileID: 1820706452}
   - {fileID: 6850851070706823074}
   - {fileID: 365620617}
+  - {fileID: 8570297292853288163}
   m_Father: {fileID: 1080427116987134708}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -23422,6 +23722,7 @@ MonoBehaviour:
   taskbarYoneticisi: {fileID: 5898979551049064913}
   pencereBaslikText: {fileID: 90563909587546768}
   pencereAdi: "YALAN MAK\u0130NES\u0130"
+  varsayilanBoyut: {x: 900, y: 600}
 --- !u!222 &7772561896266631077
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -23642,6 +23943,7 @@ GameObject:
   - component: {fileID: 2688956669024098634}
   - component: {fileID: 8155405776160896796}
   - component: {fileID: 8321859139320522530}
+  - component: {fileID: 8321859139320522531}
   m_Layer: 5
   m_Name: "\xFCstbar"
   m_TagString: Untagged
@@ -24134,6 +24436,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Detective.UI::PencereButonlari
   pencere: {fileID: 2794681725501847956}
+--- !u!114 &8321859139320522531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7900818767414432140}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2666503c3a58946489a48803a5853015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereSurukleyici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
 --- !u!1 &8341873530390866750
 GameObject:
   m_ObjectHideFlags: 0
@@ -24328,9 +24645,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 805143266449526736}
   - {fileID: 3364511387119155987}
   - {fileID: 5150652482645600768}
+  - {fileID: 805143266449526736}
   m_Father: {fileID: 6806306561798241581}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -25104,6 +25421,7 @@ GameObject:
   - component: {fileID: 4720314757762896357}
   - component: {fileID: 98642309921734159}
   - component: {fileID: 977935123895719355}
+  - component: {fileID: 9046746027582622418}
   m_Layer: 5
   m_Name: "\xFCstbar"
   m_TagString: Untagged
@@ -25111,6 +25429,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &9046746027582622418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9046746027582622417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2666503c3a58946489a48803a5853015, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Detective.UI::PencereSurukleyici
+  anaPencere: {fileID: 0}
+  anaCanvas: {fileID: 0}
+  pencereScripti: {fileID: 0}
 --- !u!1 &9048962993659817626
 GameObject:
   m_ObjectHideFlags: 0
