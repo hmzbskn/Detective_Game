@@ -4336,10 +4336,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 160848624621128859}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 025d4f2097c5ce94e98f8cb865676dfd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EsyaAl
-  esyaVerisi: {fileID: 11400000, guid: cfa20e1aade798943852fc779d152cc3, type: 2}
+  m_Script: {fileID: 11500000, guid: 76b43fdc2e57f55429e93c77f33f4acd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Detective.Interaction::EldeTutulabilirObje
+  objeAdi: Su Bardağı
+  etkilesimMetni: AL
+  itemData: {fileID: 11400000, guid: 4c1d4bca31b404743828c4171914636e, type: 2}
 --- !u!1 &163219674349468399
 GameObject:
   m_ObjectHideFlags: 0
@@ -260221,10 +260223,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7722659762753303617}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 025d4f2097c5ce94e98f8cb865676dfd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EsyaAl
-  esyaVerisi: {fileID: 11400000, guid: cfa20e1aade798943852fc779d152cc3, type: 2}
+  m_Script: {fileID: 11500000, guid: 76b43fdc2e57f55429e93c77f33f4acd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Detective.Interaction::EldeTutulabilirObje
+  objeAdi: Su Bardağı
+  etkilesimMetni: AL
+  itemData: {fileID: 11400000, guid: 4c1d4bca31b404743828c4171914636e, type: 2}
 --- !u!1 &7725315865730785098
 GameObject:
   m_ObjectHideFlags: 0

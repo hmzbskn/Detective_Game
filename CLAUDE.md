@@ -9,8 +9,9 @@ A Unity 3D first-person detective/murder-mystery game (Turkish-language project,
 collecting evidence, swabbing DNA samples, photographing clues, interviewing NPCs, and pinning
 findings to a case board.
 
-This is not a git repository (no `.git` directory present) — do not assume git history or branches
-exist unless the user has initialized one.
+This is a git repository. The modular-architecture refactor (see "Architecture" below) was carried
+out as a sequence of phase commits — `git log` is a useful map of how the current package/collaborator
+split came together if you need that history.
 
 See `AGENTS.md` for project vision/roadmap context (what the game is trying to become, planned-but-not-
 yet-built systems, and notes on the design/UML reference docs) — that file is tool-agnostic and kept in
@@ -78,10 +79,19 @@ instead — see `Assets/Game/Scripts/Bridge/` for the pattern (e.g.
 and feeds it into `Detective.DNAFingerPrint`'s minigame manager).
 
 `Assets/Scripts/` is organized by in-game system, mirroring gameplay features rather than packages:
-`Bilgisayar Sistemi` (in-game computer/OS windows), `Cinayet Tahtasi` (case/evidence board), `Envanter
-Sistemi` (inventory), `Etkileşim Scriptleri` (generic world interaction). `Assets/Scripts/sorun/`
-("problem") holds older/superseded computer-interaction scripts — check whether a script here is still
-referenced in a scene before assuming it's live code.
+`Cinayet Tahtasi` (case/evidence board controller/UI glue) and `sorun/` (despite the name — "problem"
+— this is the **live** in-game computer/OS window input code, e.g. `BilgisayarModuSistemi.cs`; it is
+not superseded by anything). Inventory ("Envanter Sistemi"), generic world-interaction scaffolding
+("Etkileşim Scriptleri"), and the old computer-window folder ("Bilgisayar Sistemi") that this note used
+to warn about were all dead code and have been deleted — their responsibilities now live in
+`Detective.Interaction` (`EldeTutulabilirObje`/`HotbarSistemi`) and `Detective.UI`
+(`BilgisayarPenceresi`/`PencereSurukleyici`/`PencereBoyutlayici`) respectively.
+
+Cross-package "mode" entry points (case board, computer, evidence inspection, photo mode, DNA
+collection, NPC dialogue) all route through one central reference-counted lock,
+`OyuncuKontrolKilidi` (`Shared-Packages/com.detective.interaction/Runtime/Modes/`), instead of each
+duplicating its own player-control-disable logic — check there first when tracing why player input is
+(or isn't) locked during a UI mode.
 
 ### Data-driven content
 
@@ -99,7 +109,7 @@ items/NPCs/DNA samples are typically added as new assets here rather than in cod
 ## Conventions
 
 - Identifiers, `Debug.Log` messages, and UI strings are almost entirely in **Turkish** (e.g.
-  `EnvanterKontrol`, `SorgulaVeKarsilastir`, `hotbarSistemi`) — preserve this convention in new code
+  `OyuncuKontrolKilidi`, `SorgulaVeKarsilastir`, `hotbarSistemi`) — preserve this convention in new code
   rather than switching to English, and don't be thrown by Turkish class/method names when tracing
   logic.
 - MonoBehaviour fields are private with `[SerializeField]` and are re-resolved defensively in

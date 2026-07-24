@@ -37,10 +37,12 @@ something to smooth over with hand-holding UI.
 
 ## Current architecture (mirrors CLAUDE.md)
 
-Unity Editor **6000.3.10f1**, Universal Render Pipeline. No git repo is guaranteed to exist and there is
-no CLI build/test/lint pipeline — this is developed inside the Unity Editor. `.csproj`/`.sln` files are
-IDE-generated, not for `dotnet build`. Prefer Unity Editor tooling (or an Editor-connected MCP/agent
-integration, if available in your environment) over hand-editing `.unity`/`.prefab` YAML.
+Unity Editor **6000.3.10f1**, Universal Render Pipeline. This is a git repository (a modular-
+architecture refactor was carried out as a sequence of phase commits — `git log` maps how the current
+package/collaborator split came together). There is no CLI build/test/lint pipeline — this is developed
+inside the Unity Editor. `.csproj`/`.sln` files are IDE-generated, not for `dotnet build`. Prefer Unity
+Editor tooling (or an Editor-connected MCP/agent integration, if available in your environment) over
+hand-editing `.unity`/`.prefab` YAML.
 
 ### Modular package structure
 
@@ -87,12 +89,21 @@ sees every package assembly. Since packages don't reference each other in revers
 lives here — see `Assets/Game/Scripts/Bridge/BilgisayarDNASorgulamaKoprusu.cs` (pulls DNA evidence out
 of Interaction's hotbar and feeds Detective.DNAFingerPrint's minigame manager).
 
-`Assets/Scripts/` is organized by in-game system: `Bilgisayar Sistemi` (computer/OS windows), `Cinayet
-Tahtasi` (case/evidence board), `Envanter Sistemi` (inventory), `Etkileşim Scriptleri` (generic world
-interaction). `Assets/Scripts/sorun/` ("problem") holds an older, superseded computer-interaction
-implementation (`BilgisayarEtkilesim.cs`, `BilgisayarModuSistemi.cs`) — check scene references before
-touching it; the live computer system is `Detective.UI`'s `Computer/` classes plus
-`Etkileşim Scriptleri/BilgisayarliEtkilesim.cs`.
+`Assets/Scripts/` is organized by in-game system: `Cinayet Tahtasi` (case/evidence board controller/UI
+glue) and `sorun/` (despite the name — "problem" — this is the **live** in-game computer/OS window
+input code, `BilgisayarModuSistemi.cs`; it is not superseded by anything). A prior modular-architecture
+refactor deleted three folders that had accumulated as dead code: `Bilgisayar Sistemi` (an unused
+older computer/OS-window implementation), `Envanter Sistemi` (an unused older inventory
+implementation), and `Etkileşim Scriptleri` (unused older world-interaction scaffolding, including a
+second, shadowing `IEtkilesebilir` interface definition that produced compiler warnings). Their live
+equivalents are `Detective.Interaction`'s `EldeTutulabilirObje`/`HotbarSistemi`/`IEtkilesebilir` (in
+`Interfaces/IEtkilesim.cs`) and `Detective.UI`'s `BilgisayarPenceresi`/`PencereSurukleyici`/
+`PencereBoyutlayici` (`Computer/`).
+
+Cross-package "mode" entry points (case board, computer, evidence inspection, photo mode, DNA
+collection, NPC dialogue) all route through one central reference-counted lock, `OyuncuKontrolKilidi`
+(`Shared-Packages/com.detective.interaction/Runtime/Modes/`), rather than each duplicating its own
+player-control-disable logic.
 
 ### Data-driven content
 
@@ -109,10 +120,10 @@ items/NPCs/DNA samples are added as assets here, not hardcoded.
 ### Conventions
 
 - Identifiers, `Debug.Log` messages, and UI strings are almost entirely **Turkish** (e.g.
-  `EnvanterKontrol`, `SorgulaVeKarsilastir`, `hotbarSistemi`). Preserve this in new code.
+  `OyuncuKontrolKilidi`, `SorgulaVeKarsilastir`, `hotbarSistemi`). Preserve this in new code.
 - MonoBehaviour fields are private `[SerializeField]`, defensively re-resolved in `Awake`/`OnEnable` via
   `FindFirstObjectByType`/`GetComponentInChildren` when not wired in the inspector.
-- Interfaces drive cross-cutting behavior: `IEtkilesilebilir` (interactable), `IHighlightable`
+- Interfaces drive cross-cutting behavior: `IEtkilesebilir` (interactable), `IHighlightable`
   (look-at highlight), `IIncelenebilir` (examinable in the inspection mode).
 
 ## Systems implemented so far (per the project's own engineering-design writeup)
@@ -176,12 +187,14 @@ Cases are designed around a 5-phase arc — useful context if asked to build que
 A set of ~30 PNG class diagrams exists covering interaction, UI, DNA, NPC, and inventory systems. They
 were largely produced *from* the current package architecture and mostly still match it (e.g.
 `Envanter Veri Modeli UML Diyagramı2.png` matches `ItemData`/`InventoryItemStack` in
-`Detective.Interaction` almost exactly). **Exception**: the `Bilgisayar Modu ve Lab Sistemi` and
-`Bilgisayar Pencere Sistemi` diagrams mix current classes (`LabPenceresiAcici`, `BilgisayarPenceresi`,
-`DNAMiniGameManager` — all live in `Detective.UI`) with superseded ones (`BilgisayarEtkilesim`,
-`BilgisayarModuSistemi` — now only in `Assets/Scripts/sorun/`). Treat any UML diagram as a
-starting hypothesis to verify against the actual `.cs` files, not as ground truth — the owner has
-flagged them as not fully up to date.
+`Detective.Interaction` almost exactly). The `Bilgisayar Modu ve Lab Sistemi` and `Bilgisayar Pencere
+Sistemi` diagrams mix classes from `Detective.UI` (`LabPenceresiAcici`, `BilgisayarPenceresi`,
+`DNAMiniGameManager`) with `Assets/Scripts/sorun/` (`BilgisayarEtkilesim`, `BilgisayarModuSistemi`) —
+both sides are live code, just split across the package/glue-layer boundary described above. Treat any
+UML diagram as a starting hypothesis to verify against the actual `.cs` files, not as ground truth — the
+owner has flagged them as not fully up to date, and a subsequent refactor changed internals (e.g.
+`HotbarSistemi` now delegates to `EnvanterDeposu`/`EnvanterPanelDurumu` collaborators) that predate the
+diagrams.
 
 The `gpt/SınıfAçıklamaları.docx` file (also under the Detective design-docs folder) contains prose
 walkthroughs of several of these classes/diagrams (IEtkilesilebilir, OyuncuEtkilesim, EtkilesilebilirObje,
