@@ -11177,6 +11177,8 @@ MonoBehaviour:
   - {fileID: 1271789777469953394}
   oyuncuEsyaTutucu: {fileID: 1703317691}
   cursorKilitliKalsin: 1
+  aktifKalacakScriptler:
+  - {fileID: 1703317706}
 --- !u!114 &1727753043
 MonoBehaviour:
   m_ObjectHideFlags: 0

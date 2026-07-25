@@ -16,6 +16,10 @@ public class FotografModuSistemi : MonoBehaviour
     [Tooltip("Açık iken cursor kilitli/gizli kalsın mı? (Fotoğraf modu nişan alma tabanlı olduğu için varsayılan olarak açık.)")]
     [SerializeField] private bool cursorKilitliKalsin = true;
 
+    [Header("Fotoğraf Modunda Aktif Kalacak Scriptler")]
+    [Tooltip("Nişan alırken kameranın dönebilmesi için OyuncuKontrolKilidi'nin genel listesinde olsa bile burada işaretlenen scriptler (örn. FirstPersonController) bu modda devre dışı BIRAKILMAZ.")]
+    [SerializeField] private MonoBehaviour[] aktifKalacakScriptler;
+
     private readonly Dictionary<GameObject, bool> uiEskiDurumlari = new Dictionary<GameObject, bool>();
 
     public bool ModAktifMi { get; private set; }
@@ -40,7 +44,7 @@ public class FotografModuSistemi : MonoBehaviour
         ModAktifMi = true;
 
         UIObjeleriniGizle();
-        OyuncuKontrolKilidi.Kilitle(!cursorKilitliKalsin);
+        OyuncuKontrolKilidi.Kilitle(!cursorKilitliKalsin, aktifKalacakScriptler);
 
         if (oyuncuEsyaTutucu != null)
             oyuncuEsyaTutucu.PreviewDurdur();

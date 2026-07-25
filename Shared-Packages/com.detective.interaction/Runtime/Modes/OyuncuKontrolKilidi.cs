@@ -40,12 +40,14 @@ public class OyuncuKontrolKilidi : MonoBehaviour
     /// cursor durumunu kaydeder. <paramref name="imleciSerbestBirak"/>: bazı modlar (örn. bilgisayar,
     /// cinayet tahtası, inceleme) cursor'ı serbest bırakıp görünür yapmak ister; bazıları (örn.
     /// fotoğraf modu) nişan alma tabanlı olduğu için cursor'ın kilitli kalmasını ister — bu yüzden
-    /// sabit bir alan değil, çağıran tarafın belirlediği bir parametredir.
+    /// sabit bir alan değil, çağıran tarafın belirlediği bir parametredir. <paramref name="haricTutulacaklar"/>:
+    /// listede olsa bile bu çağrı için devre dışı bırakılmayacak scriptler (örn. fotoğraf modu, nişan
+    /// alırken kameranın dönebilmesi için FirstPersonController'ı burada hariç tutar).
     /// </summary>
-    public static void Kilitle(bool imleciSerbestBirak = true)
+    public static void Kilitle(bool imleciSerbestBirak = true, MonoBehaviour[] haricTutulacaklar = null)
     {
         if (kilitSayisi == 0 && Instance != null)
-            Instance.IlkKilidiUygula(imleciSerbestBirak);
+            Instance.IlkKilidiUygula(imleciSerbestBirak, haricTutulacaklar);
 
         kilitSayisi++;
     }
@@ -80,7 +82,7 @@ public class OyuncuKontrolKilidi : MonoBehaviour
             Instance.SonKilidiKaldir();
     }
 
-    private void IlkKilidiUygula(bool imleciSerbestBirak)
+    private void IlkKilidiUygula(bool imleciSerbestBirak, MonoBehaviour[] haricTutulacaklar)
     {
         oncekiCursorLockState = Cursor.lockState;
         oncekiCursorVisible = Cursor.visible;
@@ -94,6 +96,9 @@ public class OyuncuKontrolKilidi : MonoBehaviour
                 MonoBehaviour script = kontrolScriptleri[i];
 
                 if (script == null)
+                    continue;
+
+                if (haricTutulacaklar != null && System.Array.IndexOf(haricTutulacaklar, script) >= 0)
                     continue;
 
                 if (!oncekiScriptDurumlari.ContainsKey(script))
